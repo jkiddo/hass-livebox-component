@@ -62,7 +62,7 @@ class LiveboxCallLogCalendar(LiveboxEntity, CalendarEntity):
         """Parses the coordinator's call log and returns calls within a datetime range."""
         assert start_date < end_date
 
-        current_uptime = self.coordinator.data.get("infos").get("UpTime") or 0
+        current_uptime = self.coordinator.data.get("infos", {}).get("UpTime") or 0
         if current_uptime < self._previous_uptime:
             # Router has reset
             self._calls = {}
@@ -88,5 +88,9 @@ class LiveboxCallLogCalendar(LiveboxEntity, CalendarEntity):
 
         self._max_call_id = max(max_call_id_in_batch, self._max_call_id)
 
-        return filter(lambda ev: ev.start > start_date and ev.end < end_date, self._calls.values())
+        return [
+            ev
+            for ev in self._calls.values()
+            if ev.start >= start_date and ev.end <= end_date
+        ]
 
