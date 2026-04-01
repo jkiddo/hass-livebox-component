@@ -118,6 +118,7 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
             return {}
 
         instance.devices.async_get_devices = AsyncMock(side_effect=_mock_get_devices)
+        instance.devices.async_set_name = AsyncMock()
 
         instance.voiceservice.async_get_calllist = AsyncMock(
             return_value=api["VoiceService.async_get_calllist"]
@@ -161,6 +162,7 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
             return_value=api["NeMo.async_get_dsl0_line_stats"]
         )
         instance.nemo.async_wifi = AsyncMock()
+        instance.nemo.async_set_wlan_config = AsyncMock()
 
         instance.sfp.async_get = AsyncMock(return_value=api["SFP.async_get"])
 
@@ -182,6 +184,8 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
         instance.dhcp.async_get_dhcp6_status = AsyncMock(
             return_value=api["Dhcp.async_get_dhcp6_status"]
         )
+        instance.dhcp.async_set_dhcp_staticlease = AsyncMock()
+        instance.dhcp.async_del_dhcp_staticlease = AsyncMock()
 
         def _mock_dhcp_leases(*args, **kwargs):
             """Mock for async_get_dhcp_leases to return different values based on first arg."""
@@ -322,6 +326,8 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
         instance.firewall.async_get_port_forwarding = AsyncMock(
             return_value=api["Firewall.async_get_port_forwarding"]
         )
+        instance.firewall.async_set_port_forwarding = AsyncMock()
+        instance.firewall.async_delete_port_forwarding = AsyncMock()
 
         instance.close = AsyncMock()
 

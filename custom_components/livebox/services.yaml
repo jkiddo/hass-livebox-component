@@ -11,3 +11,95 @@ remove_call_missed:
         sensor). Value to put in quotation marks. If you omit so that it
         deletes all calls.
       example: '"666"'
+
+add_static_dhcp:
+  name: Add static DHCP lease
+  description: Add a static DHCP lease binding a MAC address to an IP address
+  fields:
+    mac_address:
+      name: MAC Address
+      description: The MAC address of the device
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+    ip_address:
+      name: IP Address
+      description: The IP address to assign to the device
+      required: true
+      example: "192.168.1.100"
+
+remove_static_dhcp:
+  name: Remove static DHCP lease
+  description: Remove a static DHCP lease for a MAC address
+  fields:
+    mac_address:
+      name: MAC Address
+      description: The MAC address of the device
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+
+add_port_forwarding:
+  name: Add port forwarding
+  description: Add a port forwarding rule to the router
+  fields:
+    description:
+      name: Description
+      description: A name/description for the port forwarding rule
+      required: true
+      example: "Web Server"
+    destination_ip_address:
+      name: Destination IP Address
+      description: The internal IP address to forward traffic to
+      required: true
+      example: "192.168.1.100"
+    internal_port:
+      name: Internal Port
+      description: The port on the destination device
+      required: true
+      example: 8080
+    external_port:
+      name: External Port
+      description: The port exposed on the WAN side
+      required: true
+      example: 80
+    protocol:
+      name: Protocol
+      description: The protocol to forward (tcp, udp, or both)
+      default: "tcp"
+      example: "tcp"
+    enable:
+      name: Enable
+      description: Whether the rule should be enabled
+      default: true
+      example: true
+
+remove_port_forwarding:
+  name: Remove port forwarding
+  description: Remove a port forwarding rule from the router
+  fields:
+    id:
+      name: Rule ID
+      description: >
+        The ID of the port forwarding rule (visible in the port forwarding
+        sensor attributes)
+      required: true
+      example: "Web Server"
+    destination_ip_address:
+      name: Destination IP Address
+      description: The internal IP address of the rule to remove
+      required: true
+      example: "192.168.1.100"
+
+rename_device:
+  name: Rename device
+  description: Rename a device connected to the Livebox
+  fields:
+    mac_address:
+      name: MAC Address
+      description: The MAC address of the device to rename
+      required: true
+      example: "AA:BB:CC:DD:EE:FF"
+    name:
+      name: Name
+      description: The new name for the device
+      required: true
+      example: "Living Room TV"

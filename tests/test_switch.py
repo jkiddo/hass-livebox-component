@@ -107,6 +107,90 @@ async def test_switch_guest_wifi(
 
 
 @pytest.mark.parametrize("AIOSysbus", ["7"], indirect=True)
+async def test_switch_wifi_band(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    AIOSysbus: AsyncMock,
+    service_calls: list[ServiceCall],
+):
+    """Test that per-band WiFi switches work correctly."""
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # --- Initial State Check (2.4GHz and 5GHz should be ON based on fixture VAPStatus=Up) ---
+    state_2g = hass.states.get(f"switch.{AIOSysbus.__unique_name}_wifi_2_4_ghz")
+    assert state_2g is not None
+    assert state_2g.state == STATE_ON
+
+    state_5g = hass.states.get(f"switch.{AIOSysbus.__unique_name}_wifi_5_ghz")
+    assert state_5g is not None
+    assert state_5g.state == STATE_ON
+
+    # --- Test Turn Off 2.4GHz ---
+    data = {ATTR_ENTITY_ID: f"switch.{AIOSysbus.__unique_name}_wifi_2_4_ghz"}
+    await hass.services.async_call(Platform.SWITCH, "turn_off", data, blocking=True)
+
+    AIOSysbus.nemo.async_set_wlan_config.assert_called()
+    call_args = AIOSysbus.nemo.async_set_wlan_config.call_args
+    assert call_args[0][0] == "lan"
+    mibs = call_args[0][1]["mibs"]["penable"]
+    # Should contain the 2.4GHz primary VAP
+    assert any("2g" in k for k in mibs)
+    for vap_config in mibs.values():
+        assert vap_config["Enable"] is False
+
+
+@pytest.mark.parametrize("AIOSysbus", ["7"], indirect=True)
+async def test_switch_wps(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    AIOSysbus: AsyncMock,
+    service_calls: list[ServiceCall],
+):
+    """Test that the WPS switch works correctly."""
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # --- Initial State Check (WPS is enabled on primary VAPs in fixture) ---
+    state = hass.states.get(f"switch.{AIOSysbus.__unique_name}_wps")
+    assert state is not None
+    assert state.state == STATE_ON
+
+    # --- Test Turn Off ---
+    data = {ATTR_ENTITY_ID: f"switch.{AIOSysbus.__unique_name}_wps"}
+    await hass.services.async_call(Platform.SWITCH, "turn_off", data, blocking=True)
+
+    AIOSysbus.nemo.async_set_wlan_config.assert_called()
+    call_args = AIOSysbus.nemo.async_set_wlan_config.call_args
+    assert call_args[0][0] == "lan"
+    wlanvap = call_args[0][1]["mibs"]["wlanvap"]
+    # Should set WPS Enable to False on primary VAPs
+    for vap_config in wlanvap.values():
+        assert vap_config["WPS"]["Enable"] is False
+
+
+@pytest.mark.parametrize("AIOSysbus", ["3"], indirect=True)
+async def test_switch_wifi_band_lb3(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    AIOSysbus: AsyncMock,
+    service_calls: list[ServiceCall],
+):
+    """Test per-band WiFi switches on Livebox 3 (different VAP naming)."""
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # LB3 has wl0 (2.4GHz) and wl1 (5GHz) - both Down in fixture
+    state_2g = hass.states.get(f"switch.{AIOSysbus.__unique_name}_wifi_2_4_ghz")
+    assert state_2g is not None
+    assert state_2g.state == STATE_OFF
+
+    state_5g = hass.states.get(f"switch.{AIOSysbus.__unique_name}_wifi_5_ghz")
+    assert state_5g is not None
+    assert state_5g.state == STATE_OFF
+
+
+@pytest.mark.parametrize("AIOSysbus", ["7"], indirect=True)
 async def test_switch_wan_access(
     hass: HomeAssistant,
     config_entry: ConfigEntry,

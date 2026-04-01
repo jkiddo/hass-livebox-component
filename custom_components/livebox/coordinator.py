@@ -33,6 +33,30 @@ from .helpers import find_item
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=1)
 
+# Known 5GHz interface names on older Livebox models
+_5G_INTF_NAMES = {"wl1", "eth4", "eth6"}
+
+
+def _get_vap_band(vap_name: str) -> str | None:
+    """Determine WiFi band from VAP name."""
+    name = vap_name.lower()
+    if "2g" in name or name == "wl0":
+        return "2.4GHz"
+    if "5g" in name or name in _5G_INTF_NAMES:
+        return "5GHz"
+    if "6g" in name:
+        return "6GHz"
+    return None
+
+
+def _is_primary_vap(vap_name: str, vap_data: dict) -> bool:
+    """Check if VAP is a primary (non-guest) network."""
+    ess = vap_data.get("EssIdentifier")
+    if ess is not None:
+        return ess == "Primary"
+    # LB3 has no EssIdentifier, all VAPs are primary
+    return True
+
 
 class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
     """Define an object to fetch data."""
@@ -117,6 +141,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 "fiber_status": await self.async_get_fiber_status(),
                 "fiber_stats": await self.async_get_fiber_stats(),
                 "remote_access": await self.async_is_remote_access(),
+                "wlan_vaps": await self.async_get_wlan_vaps(),
                 "lan": await self.async_get_lan(devices),
                 "upnp": await self.async_get_port_forwarding(),
                 "dhcp_leases": await self.async_get_dhcp_leases(),
@@ -311,14 +336,14 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_is_wifi(self) -> bool:
         """Get wireless status."""
-        wifi = (await self._make_request(self.api.nmc.async_get_wifi)).get("status", {})
+        wifi = (await self._make_request(self.api.nmc.async_get_wifi)).get("status") or {}
         return wifi.get("Enable") is True
 
     async def async_is_guest_wifi(self) -> bool:
         """Get Guest Wifi status."""
-        guest_wifi = (await self._make_request(self.api.nmc.async_get_guest_wifi)).get(
-            "status", {}
-        )
+        guest_wifi = (
+            await self._make_request(self.api.nmc.async_get_guest_wifi)
+        ).get("status") or {}
         return guest_wifi.get("Enable") is True
 
     async def async_get_ddns(self) -> list[Any]:
@@ -441,6 +466,60 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 }
             )
         return results
+
+    async def async_get_wlan_vaps(self) -> dict[str, Any]:
+        """Get WLAN VAP information for bands and WPS status."""
+        wlanvap = (
+            await self._make_request(
+                self.api.nemo.async_get_MIBs, "lan", {"mibs": "wlanvap"}
+            )
+        ).get("status") or {}
+
+        result = {}
+        for vap_name, vap_data in wlanvap.items():
+            band = _get_vap_band(vap_name)
+            if band is None:
+                continue
+            result[vap_name] = {
+                "band": band,
+                "status": vap_data.get("VAPStatus") == "Up",
+                "wps_enabled": (vap_data.get("WPS") or {}).get("Enable", False),
+                "is_primary": _is_primary_vap(vap_name, vap_data),
+            }
+        return result
+
+    def get_primary_vaps_for_band(self, band: str) -> dict[str, dict]:
+        """Return primary VAPs matching a specific band."""
+        return {
+            name: info
+            for name, info in (self.data or {}).get("wlan_vaps", {}).items()
+            if info["band"] == band and info["is_primary"]
+        }
+
+    async def async_set_wifi_band(self, band: str, enable: bool) -> None:
+        """Enable or disable a specific WiFi band."""
+        config = {}
+        for vap_name in self.get_primary_vaps_for_band(band):
+            config[vap_name] = {
+                "Enable": enable,
+                "PersistentEnable": enable,
+                "Status": enable,
+            }
+        if config:
+            await self.api.nemo.async_set_wlan_config(
+                "lan", {"mibs": {"penable": config}}
+            )
+
+    async def async_set_wps(self, enable: bool) -> None:
+        """Enable or disable WPS on all primary VAPs."""
+        config = {}
+        for vap_name, vap_info in (self.data or {}).get("wlan_vaps", {}).items():
+            if vap_info["is_primary"]:
+                config[vap_name] = {"WPS": {"Enable": enable}}
+        if config:
+            await self.api.nemo.async_set_wlan_config(
+                "lan", {"mibs": {"wlanvap": config}}
+            )
 
     async def _make_request(
         self, func: Callable[..., Any], *args: Any

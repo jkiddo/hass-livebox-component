@@ -14,7 +14,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import LiveboxConfigEntry
-from .const import DEVICE_WANACCESS_ICON, DOMAIN, GUESTWIFI_ICON
+from .const import DEVICE_WANACCESS_ICON, DOMAIN, GUESTWIFI_ICON, WPS_ICON
 from .coordinator import LiveboxDataUpdateCoordinator
 from .entity import LiveboxEntity
 
@@ -69,6 +69,13 @@ SWITCH_TYPES_5: Final[tuple[LiveboxSwitchEntityDescription, ...]] = (
 )
 
 
+BAND_LABELS = {
+    "2.4GHz": "2.4 GHz",
+    "5GHz": "5 GHz",
+    "6GHz": "6 GHz",
+}
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: LiveboxConfigEntry,
@@ -77,9 +84,20 @@ async def async_setup_entry(
     """Set up the sensors."""
     coordinator = entry.runtime_data
     switchs_description = SWITCH_TYPES_5 if coordinator.model == 5 else SWITCH_TYPES
-    entities = [
+    entities: list[SwitchEntity] = [
         LiveboxSwitch(coordinator, description) for description in switchs_description
     ]
+
+    # Per-band WiFi switches
+    seen_bands: set[str] = set()
+    for vap_info in (coordinator.data or {}).get("wlan_vaps", {}).values():
+        band = vap_info["band"]
+        if vap_info["is_primary"] and band not in seen_bands:
+            seen_bands.add(band)
+            entities.append(WifiBandSwitch(coordinator, band))
+
+    # WPS switch
+    entities.append(WPSSwitch(coordinator))
 
     async_add_entities(entities)
 
@@ -225,3 +243,66 @@ class DeviceWANAccessSwitch(LiveboxEntity, SwitchEntity):
                     "WAN access"
                 )
             await self.coordinator.async_request_refresh()
+
+
+class WifiBandSwitch(LiveboxEntity, SwitchEntity):
+    """Switch to control a specific WiFi band (2.4GHz, 5GHz, 6GHz)."""
+
+    def __init__(
+        self,
+        coordinator: LiveboxDataUpdateCoordinator,
+        band: str,
+    ) -> None:
+        """Initialize the switch."""
+        label = BAND_LABELS.get(band, band)
+        description = SwitchEntityDescription(
+            key=f"wifi_{band.lower().replace('.', '')}",
+            name=f"Wifi {label}",
+        )
+        super().__init__(coordinator, description)
+        self._band = band
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if band is enabled."""
+        vaps = self.coordinator.get_primary_vaps_for_band(self._band)
+        return any(v["status"] for v in vaps.values())
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable WiFi band."""
+        await self.coordinator.async_set_wifi_band(self._band, True)
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable WiFi band."""
+        await self.coordinator.async_set_wifi_band(self._band, False)
+        await self.coordinator.async_request_refresh()
+
+
+class WPSSwitch(LiveboxEntity, SwitchEntity):
+    """Switch to control WPS on all primary VAPs."""
+
+    _attr_icon = WPS_ICON
+
+    def __init__(self, coordinator: LiveboxDataUpdateCoordinator) -> None:
+        """Initialize the switch."""
+        description = SwitchEntityDescription(key="wps", name="WPS")
+        super().__init__(coordinator, description)
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if WPS is enabled on any primary VAP."""
+        for vap_info in self.coordinator.data.get("wlan_vaps", {}).values():
+            if vap_info["is_primary"] and vap_info["wps_enabled"]:
+                return True
+        return False
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable WPS."""
+        await self.coordinator.async_set_wps(True)
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable WPS."""
+        await self.coordinator.async_set_wps(False)
+        await self.coordinator.async_request_refresh()
