@@ -1,4 +1,4 @@
-"""Sensor for Livebox router."""
+"""Switch for SoftAtHome Gateway."""
 
 from __future__ import annotations
 

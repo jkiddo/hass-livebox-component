@@ -1,4 +1,4 @@
-"""Livebox binary sensor entities."""
+"""SoftAtHome Gateway binary sensor entities."""
 
 from __future__ import annotations
 

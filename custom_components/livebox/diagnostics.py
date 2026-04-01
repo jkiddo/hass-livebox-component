@@ -1,4 +1,4 @@
-"""Diagnostics support for Livebox."""
+"""Diagnostics support for SoftAtHome Gateway."""
 
 from __future__ import annotations
 

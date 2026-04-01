@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "[%key:components::livebox::config::step::user::title%]",
+        "title": "Check your gateway",
         "data": {
           "host": "[%key:common::config_flow::data::host%]",
           "username": "[%key:common::config_flow::data::username%]",
@@ -14,8 +14,8 @@
       }
     },
     "error": {
-      "login_incorrect": "[%key:components::livebox::config::error::login_incorrect%]",
-      "insufficient_permission": "[%key:components::livebox::config::error::insufficient_permission%]",
+      "login_incorrect": "User or password incorrect",
+      "insufficient_permission": "Insufficient permission.",
       "unknown": "[%key:common::config_flow::error::unknown%]",
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
     }

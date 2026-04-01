@@ -1,4 +1,4 @@
-"""Button for Livebox router."""
+"""Button for SoftAtHome Gateway."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class LiveboxButtonEntityDescription(ButtonEntityDescription):
 BUTTON_TYPES: Final[tuple[ButtonEntityDescription, ...]] = (
     LiveboxButtonEntityDescription(
         key="restart",
-        name="Livebox restart",
+        name="Gateway restart",
         icon=RESTART_ICON,
         translation_key="restart_btn",
         value_fn=lambda x: x.nmc.async_reboot,

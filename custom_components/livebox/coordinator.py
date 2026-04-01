@@ -1,4 +1,4 @@
-"""Coordinator for Livebox."""
+"""Coordinator for SoftAtHome Gateway."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ from .helpers import find_item
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=1)
 
-# Known 5GHz interface names on older Livebox models
+# Known 5GHz interface names on older gateway models
 _5G_INTF_NAMES = {"wl1", "eth4", "eth6"}
 
 
@@ -642,10 +642,10 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
 
     @property
     def signal_device_new(self) -> str:
-        """Event specific per Livebox entry to signal new device."""
+        """Event to signal new device."""
         return f"{DOMAIN}-{self.unique_id}-device-new"
 
     @property
     def signal_wan_access_new(self) -> str:
-        """Event specific per Livebox entry to signal new device."""
+        """Event to signal new WAN access device."""
         return f"{DOMAIN}-{self.unique_id}-wan-accessnew"

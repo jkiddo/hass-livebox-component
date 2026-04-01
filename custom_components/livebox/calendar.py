@@ -1,4 +1,4 @@
-"""Call log calendar for Livebox SIP gateway."""
+"""Call log calendar for SoftAtHome Gateway SIP service."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ class LiveboxCallLogCalendar(LiveboxEntity, CalendarEntity):
             # Router has reset
             self._calls = {}
             self._max_call_id = 0
-            _LOGGER.warning("Livebox has reset, clearing up call log")
+            _LOGGER.warning("Gateway has reset, clearing up call log")
         self._previous_uptime = current_uptime
 
         max_call_id_in_batch = 0

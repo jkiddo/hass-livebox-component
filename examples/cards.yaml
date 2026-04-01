@@ -1,5 +1,5 @@
 ##############################################################################
-# Orange Livebox - Custom Card Snippets (require HACS)
+# SoftAtHome Gateway - Custom Card Snippets (require HACS)
 #
 # These cards require third-party frontend components installed via HACS.
 # Copy individual cards into your dashboard's YAML editor.

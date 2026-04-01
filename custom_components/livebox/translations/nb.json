@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Sjekk liveboxen din",
+        "title": "Sjekk gatewayen din",
         "data": {
           "host": "IP Address",
           "username": "Brukernavn",
@@ -17,7 +17,7 @@
       "login_incorrect": "Feil bruker eller passord",
       "insufficient_permission": "Utilstrekkelig tillatelse.",
       "unknown": "Det oppstod en ukjent feil",
-      "cannot_connect": "Kan ikke koble til liveboxen"
+      "cannot_connect": "Kan ikke koble til gatewayen"
     }
   },
   "options": {

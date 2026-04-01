@@ -1,4 +1,4 @@
-"""Orange Livebox."""
+"""SoftAtHome Gateway integration."""
 
 import logging
 
@@ -58,7 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: LiveboxConfigEntry) -> bool:
-    """Set up Livebox as config entry."""
+    """Set up SoftAtHome Gateway as config entry."""
     coordinator = LiveboxDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

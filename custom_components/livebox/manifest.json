@@ -1,6 +1,6 @@
 {
   "domain": "livebox",
-  "name": "Orange Livebox",
+  "name": "SoftAtHome Gateway",
   "codeowners": ["@cyr-ius"],
   "config_flow": true,
   "dependencies": ["ssdp"],

@@ -1,12 +1,12 @@
 ##############################################################################
-# Orange Livebox - Automation Examples
+# SoftAtHome Gateway - Automation Examples
 #
 # Add these to your automations.yaml or via Settings > Automations.
 # Replace "hgw5" with your actual device name.
 ##############################################################################
 
 # --- Notify on new missed call ---
-- alias: "Livebox - Missed call notification"
+- alias: "Gateway -Missed call notification"
   trigger:
     - platform: state
       entity_id: binary_sensor.hgw5_call_missed
@@ -20,7 +20,7 @@
           'missed_calls')[0].phone_number }}
 
 # --- Disable WPS at night for security ---
-- alias: "Livebox - Disable WPS at night"
+- alias: "Gateway -Disable WPS at night"
   trigger:
     - platform: time
       at: "23:00:00"
@@ -30,7 +30,7 @@
         entity_id: switch.hgw5_wps
 
 # --- Alert on remote access enabled ---
-- alias: "Livebox - Remote access alert"
+- alias: "Gateway -Remote access alert"
   trigger:
     - platform: state
       entity_id: binary_sensor.hgw5_remote_access
@@ -39,10 +39,10 @@
     - action: notify.mobile_app
       data:
         title: "Security Alert"
-        message: "Remote access has been enabled on your Livebox!"
+        message: "Remote access has been enabled on your gateway!"
 
 # --- Disable WiFi at night, re-enable in the morning ---
-- alias: "Livebox - WiFi off at midnight"
+- alias: "Gateway -WiFi off at midnight"
   trigger:
     - platform: time
       at: "00:00:00"
@@ -51,7 +51,7 @@
       target:
         entity_id: switch.hgw5_wifi
 
-- alias: "Livebox - WiFi on at 7am"
+- alias: "Gateway -WiFi on at 7am"
   trigger:
     - platform: time
       at: "07:00:00"
@@ -61,7 +61,7 @@
         entity_id: switch.hgw5_wifi
 
 # --- Disable guest WiFi when nobody is home ---
-- alias: "Livebox - Guest WiFi off when away"
+- alias: "Gateway -Guest WiFi off when away"
   trigger:
     - platform: state
       entity_id: zone.home
@@ -71,7 +71,7 @@
       target:
         entity_id: switch.hgw5_guest_wifi
 
-- alias: "Livebox - Guest WiFi on when home"
+- alias: "Gateway -Guest WiFi on when home"
   trigger:
     - platform: state
       entity_id: zone.home
@@ -82,7 +82,7 @@
         entity_id: switch.hgw5_guest_wifi
 
 # --- Turn off 5GHz at night to save power, keep 2.4GHz for IoT devices ---
-- alias: "Livebox - 5GHz off at night"
+- alias: "Gateway -5GHz off at night"
   trigger:
     - platform: time
       at: "23:00:00"
@@ -93,7 +93,7 @@
           - switch.hgw5_wifi_5_ghz
           - switch.hgw5_wifi_6_ghz
 
-- alias: "Livebox - 5GHz on in the morning"
+- alias: "Gateway -5GHz on in the morning"
   trigger:
     - platform: time
       at: "06:30:00"
@@ -105,7 +105,7 @@
           - switch.hgw5_wifi_6_ghz
 
 # --- Toggle WiFi via a button press (e.g. Zigbee button) ---
-- alias: "Livebox - Toggle WiFi with button"
+- alias: "Gateway -Toggle WiFi with button"
   trigger:
     - platform: event
       event_type: zha_event
@@ -118,7 +118,7 @@
         entity_id: switch.hgw5_wifi
 
 # --- Block a kid's device from internet at bedtime ---
-- alias: "Livebox - Block kid tablet at bedtime"
+- alias: "Gateway -Block kid tablet at bedtime"
   trigger:
     - platform: time
       at: "21:00:00"
@@ -135,7 +135,7 @@
       target:
         entity_id: switch.kids_tablet_wan_access
 
-- alias: "Livebox - Unblock kid tablet in the morning"
+- alias: "Gateway -Unblock kid tablet in the morning"
   trigger:
     - platform: time
       at: "07:00:00"

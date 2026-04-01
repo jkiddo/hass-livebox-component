@@ -1,4 +1,4 @@
-# Livebox service entries description.
+# SoftAtHome Gateway service entries description.
 ---
 remove_call_missed:
   name: Remove call missed
@@ -91,7 +91,7 @@ remove_port_forwarding:
 
 rename_device:
   name: Rename device
-  description: Rename a device connected to the Livebox
+  description: Rename a device connected to the gateway
   fields:
     mac_address:
       name: MAC Address

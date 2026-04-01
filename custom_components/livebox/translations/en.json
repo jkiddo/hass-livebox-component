@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Check your livebox",
+        "title": "Check your gateway",
         "data": {
           "host": "IP Address",
           "username": "Username",
@@ -17,7 +17,7 @@
       "login_incorrect": "User or password incorrect",
       "insufficient_permission": "Insufficient permission.",
       "unknown": "Unknown error occurred",
-      "cannot_connect": "Unable to connect to the livebox"
+      "cannot_connect": "Unable to connect to the gateway"
     }
   },
   "options": {

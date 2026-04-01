@@ -1,4 +1,4 @@
-"""Support for the Livebox platform."""
+"""Support for the SoftAtHome Gateway device tracker."""
 
 from __future__ import annotations
 
@@ -210,7 +210,7 @@ class LiveboxDeviceScannerEntity(LiveboxEntity, ScannerEntity):
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device info to link entity to the Livebox device."""
+        """Return device info to link entity to the gateway device."""
         return DeviceInfo(
             name=self._device.get("Name"),
             identifiers={(DOMAIN, self._device.get("Key", self.name))},

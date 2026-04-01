@@ -1,5 +1,5 @@
 ##############################################################################
-# Orange Livebox - Home Assistant Dashboard
+# SoftAtHome Gateway - Home Assistant Dashboard
 #
 # Entity IDs use your Livebox's ProductClass as prefix (e.g. "hgw5",
 # "livebox_7", "livebox_fibre"). To find yours:
@@ -80,12 +80,12 @@ sections:
 
       - type: tile
         entity: button.hgw5_livebox_restart
-        name: Restart Livebox
+        name: Restart Gateway
         color: red
         tap_action:
           action: toggle
           confirmation:
-            text: Are you sure you want to restart the Livebox?
+            text: Are you sure you want to restart the gateway?
 
   # --------------------------------------------------------------------------
   # Section 2: WiFi Controls

@@ -1,4 +1,4 @@
-"""Config flow to configure Livebox."""
+"""Config flow to configure SoftAtHome Gateway."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LiveboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a Livebox config flow."""
+    """Handle a SoftAtHome Gateway config flow."""
 
     VERSION = 1
 
@@ -92,19 +92,19 @@ class LiveboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 infos = await api.deviceinfo.async_get_deviceinfo()
 
             except AuthenticationFailed as err:
-                _LOGGER.warning("Fail to authenticate to the Livebox: %s", err)
+                _LOGGER.warning("Fail to authenticate to the gateway: %s", err)
                 errors["base"] = "login_incorrect"
             except InsufficientPermissionsError as err:
                 _LOGGER.warning(
-                    "Insufficient permissions error occurred connecting to the Livebox: %s",
+                    "Insufficient permissions error occurred connecting to the gateway: %s",
                     err,
                 )
                 errors["base"] = "insufficient_permission"
             except (RetrieveFailed, HttpRequestFailed) as err:
-                _LOGGER.warning("Fail to connect to the Livebox: %s", err)
+                _LOGGER.warning("Fail to connect to the gateway: %s", err)
                 errors["base"] = "cannot_connect"
             except AiosysbusException:
-                _LOGGER.exception("Unknown error connecting to the Livebox")
+                _LOGGER.exception("Unknown error connecting to the gateway")
                 errors["base"] = "unknown"
             else:
                 if (sn := infos.get("status", {}).get("SerialNumber")) is not None:

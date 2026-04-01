@@ -1,4 +1,4 @@
-"""Constants for the Livebox component."""
+"""Constants for the SoftAtHome Gateway component."""
 
 DOMAIN = "livebox"
 COORDINATOR = "coordinator"
@@ -6,7 +6,7 @@ UNSUB_LISTENER = "unsubscribe_listener"
 LIVEBOX_API = "api"
 PLATFORMS = ["sensor", "binary_sensor", "switch", "button", "device_tracker", "calendar"]
 
-TEMPLATE_SENSOR = "Orange Livebox"
+TEMPLATE_SENSOR = "SoftAtHome Gateway"
 
 DEFAULT_USERNAME = "admin"
 DEFAULT_HOST = "192.168.1.1"
