@@ -302,6 +302,39 @@ SENSOR_TYPES: Final[list[LiveboxSensorEntityDescription]] = [
         device_class=SensorDeviceClass.DATA_RATE,
         translation_key="guest_wifi_bandwidth",
     ),
+    LiveboxSensorEntityDescription(
+        key="phone_lines",
+        name="Phone Lines",
+        icon="mdi:phone-voip",
+        value_fn=lambda x: len(x.get("phone_trunks", [])),
+        state_class=SensorStateClass.TOTAL,
+        translation_key="phone_lines",
+        attrs={
+            "lines": lambda x: x.get("phone_trunks"),
+        },
+    ),
+    LiveboxSensorEntityDescription(
+        key="phonebook_contacts",
+        name="Phonebook Contacts",
+        icon="mdi:contacts",
+        value_fn=lambda x: find_item(x, "phonebook_count.count", 0),
+        state_class=SensorStateClass.TOTAL,
+        translation_key="phonebook_contacts",
+        attrs={
+            "max_contacts": lambda x: find_item(x, "phonebook_count.max"),
+        },
+    ),
+    LiveboxSensorEntityDescription(
+        key="dect_version",
+        name="DECT Version",
+        icon="mdi:phone-classic",
+        value_fn=lambda x: find_item(x, "dect.version"),
+        translation_key="dect_version",
+        attrs={
+            "pin": lambda x: find_item(x, "dect.pin"),
+            "pairing": lambda x: find_item(x, "dect.pairing"),
+        },
+    ),
 ]
 
 

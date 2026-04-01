@@ -99,6 +99,9 @@ async def async_setup_entry(
     # WPS switch
     entities.append(WPSSwitch(coordinator))
 
+    # DECT radio switch
+    entities.append(DECTSwitch(coordinator))
+
     async_add_entities(entities)
 
     wan_access = set()
@@ -305,4 +308,30 @@ class WPSSwitch(LiveboxEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """Disable WPS."""
         await self.coordinator.async_set_wps(False)
+        await self.coordinator.async_request_refresh()
+
+
+class DECTSwitch(LiveboxEntity, SwitchEntity):
+    """Switch to control the DECT cordless phone radio."""
+
+    _attr_icon = "mdi:phone-classic"
+
+    def __init__(self, coordinator: LiveboxDataUpdateCoordinator) -> None:
+        """Initialize the switch."""
+        description = SwitchEntityDescription(key="dect_radio", name="DECT Radio")
+        super().__init__(coordinator, description)
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if DECT radio is enabled."""
+        return self.coordinator.data.get("dect", {}).get("radio_enabled") is True
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable DECT radio."""
+        await self.coordinator.api.dect.async_set_dect_radio_state({"Enable": True})
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable DECT radio."""
+        await self.coordinator.api.dect.async_set_dect_radio_state({"Enable": False})
         await self.coordinator.async_request_refresh()

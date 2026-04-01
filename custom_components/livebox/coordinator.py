@@ -146,6 +146,9 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 "eth_ports": await self.async_get_eth_ports(),
                 "guest_wifi_details": await self.async_get_guest_wifi_details(),
                 "static_dhcp_leases": await self.async_get_static_dhcp_leases(devices),
+                "dect": await self.async_get_dect_status(),
+                "phone_trunks": await self.async_get_phone_trunks(),
+                "phonebook_count": await self.async_get_phonebook_count(),
                 "lan": await self.async_get_lan(devices),
                 "upnp": await self.async_get_port_forwarding(),
                 "dhcp_leases": await self.async_get_dhcp_leases(),
@@ -480,6 +483,49 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 for item in data
             ]
         return []
+
+    async def async_get_dect_status(self) -> dict[str, Any]:
+        """Get DECT radio status."""
+        radio_state = await self._make_request(self.api.dect.async_get_dect_radio_state)
+        pin = await self._make_request(self.api.dect.async_get_dect_pin)
+        pairing = await self._make_request(self.api.dect.async_get_dect_pairing)
+        version = await self._make_request(self.api.dect.async_get_dect_version)
+        return {
+            "radio_enabled": radio_state.get("status")
+            if isinstance(radio_state, dict)
+            else radio_state,
+            "pin": pin.get("status") if isinstance(pin, dict) else pin,
+            "pairing": pairing.get("status") if isinstance(pairing, dict) else pairing,
+            "version": version.get("status") if isinstance(version, dict) else version,
+        }
+
+    async def async_get_phone_trunks(self) -> list[dict[str, Any]]:
+        """Get SIP/VoIP trunk status."""
+        result = await self._make_request(self.api.voiceservice.async_get_list_trunks)
+        trunks = result.get("status") or []
+        if not isinstance(trunks, list):
+            return []
+        lines = []
+        for trunk in trunks:
+            for line in trunk.get("trunk_lines", []):
+                lines.append(
+                    {
+                        "name": line.get("name", ""),
+                        "enable": line.get("enable"),
+                        "status": line.get("status", ""),
+                        "number": line.get("directoryNumber", ""),
+                    }
+                )
+        return lines
+
+    async def async_get_phonebook_count(self) -> dict[str, Any]:
+        """Get phonebook contact count."""
+        count = await self._make_request(self.api.phonebook.async_get_count)
+        maxnum = await self._make_request(self.api.phonebook.async_get_maxnumber)
+        return {
+            "count": count.get("status") if isinstance(count, dict) else count,
+            "max": maxnum.get("status") if isinstance(maxnum, dict) else maxnum,
+        }
 
     async def async_get_port_forwarding(self) -> list[dict[str, Any]]:
         """Get port forwarding."""

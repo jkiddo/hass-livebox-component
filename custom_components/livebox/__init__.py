@@ -52,6 +52,25 @@ RENAME_DEVICE_SCHEMA = vol.Schema(
     }
 )
 
+PHONEBOOK_ADD_SCHEMA = vol.Schema(
+    {
+        vol.Required("name"): str,
+        vol.Required("phone_number"): str,
+    }
+)
+
+PHONEBOOK_REMOVE_SCHEMA = vol.Schema(
+    {
+        vol.Required("name"): str,
+    }
+)
+
+DECT_PIN_SCHEMA = vol.Schema(
+    {
+        vol.Required("pin"): str,
+    }
+)
+
 PROTOCOL_MAP = {"tcp": "6", "udp": "17", "both": "6,17"}
 
 _LOGGER = logging.getLogger(__name__)
@@ -121,6 +140,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiveboxConfigEntry) -> b
         )
         await coordinator.async_refresh()
 
+    async def async_phonebook_add(call) -> None:
+        await coordinator.api.phonebook.async_add_contact(
+            {"name": call.data["name"], "number": call.data["phone_number"]}
+        )
+        await coordinator.async_refresh()
+
+    async def async_phonebook_remove(call) -> None:
+        await coordinator.api.phonebook.async_del_contact_name(
+            {"name": call.data["name"]}
+        )
+        await coordinator.async_refresh()
+
+    async def async_set_dect_pin(call) -> None:
+        await coordinator.api.dect.async_set_dect_pin(
+            {"PINCode": call.data["pin"]}
+        )
+        await coordinator.async_refresh()
+
     hass.services.async_register(
         DOMAIN, "remove_call_missed", async_remove_cmissed, schema=CALLMISSED_SCHEMA
     )
@@ -147,6 +184,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiveboxConfigEntry) -> b
     )
     hass.services.async_register(
         DOMAIN, "rename_device", async_rename_device, schema=RENAME_DEVICE_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "phonebook_add_contact",
+        async_phonebook_add,
+        schema=PHONEBOOK_ADD_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "phonebook_remove_contact",
+        async_phonebook_remove,
+        schema=PHONEBOOK_REMOVE_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN, "set_dect_pin", async_set_dect_pin, schema=DECT_PIN_SCHEMA
     )
 
     return True

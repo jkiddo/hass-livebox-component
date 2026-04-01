@@ -45,6 +45,20 @@ BUTTON_TYPES: Final[tuple[ButtonEntityDescription, ...]] = (
         translation_key="cmissed_clear_btn",
         value_fn=lambda x: x.voiceservice.async_clear_calllist,
     ),
+    LiveboxButtonEntityDescription(
+        key="dect_start_pairing",
+        name="DECT Start Pairing",
+        icon="mdi:phone-plus",
+        translation_key="dect_start_pairing_btn",
+        value_fn=lambda x: x.dect.async_start_dect_pairing,
+    ),
+    LiveboxButtonEntityDescription(
+        key="dect_stop_pairing",
+        name="DECT Stop Pairing",
+        icon="mdi:phone-minus",
+        translation_key="dect_stop_pairing_btn",
+        value_fn=lambda x: x.dect.async_stop_dect_pairing,
+    ),
 )
 
 

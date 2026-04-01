@@ -103,3 +103,38 @@ rename_device:
       description: The new name for the device
       required: true
       example: "Living Room TV"
+
+phonebook_add_contact:
+  name: Add phonebook contact
+  description: Add a contact to the gateway's phonebook
+  fields:
+    name:
+      name: Name
+      description: The contact name
+      required: true
+      example: "John Doe"
+    phone_number:
+      name: Phone Number
+      description: The phone number
+      required: true
+      example: "+4512345678"
+
+phonebook_remove_contact:
+  name: Remove phonebook contact
+  description: Remove a contact from the gateway's phonebook by name
+  fields:
+    name:
+      name: Name
+      description: The contact name to remove
+      required: true
+      example: "John Doe"
+
+set_dect_pin:
+  name: Set DECT PIN
+  description: Set the DECT handset pairing PIN code
+  fields:
+    pin:
+      name: PIN
+      description: The new DECT PIN code
+      required: true
+      example: "1234"

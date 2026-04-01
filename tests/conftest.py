@@ -167,6 +167,23 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
             return_value=api["NeMo.async_get_dsl0_line_stats"]
         )
         instance.nemo.async_wifi = AsyncMock()
+
+        instance.dect.async_get_dect_radio_state = AsyncMock(return_value={"status": False})
+        instance.dect.async_get_dect_pin = AsyncMock(return_value={"status": "0000"})
+        instance.dect.async_get_dect_pairing = AsyncMock(return_value={"status": "Idle"})
+        instance.dect.async_get_dect_version = AsyncMock(return_value={"status": "5.0"})
+        instance.dect.async_set_dect_radio_state = AsyncMock()
+        instance.dect.async_set_dect_pin = AsyncMock()
+        instance.dect.async_start_dect_pairing = AsyncMock()
+        instance.dect.async_stop_dect_pairing = AsyncMock()
+
+        instance.voiceservice.async_get_list_trunks = AsyncMock(return_value={"status": []})
+        instance.voiceservice.async_get_list_handsets = AsyncMock(return_value={"status": []})
+
+        instance.phonebook.async_get_count = AsyncMock(return_value={"status": 0})
+        instance.phonebook.async_get_maxnumber = AsyncMock(return_value={"status": 500})
+        instance.phonebook.async_add_contact = AsyncMock()
+        instance.phonebook.async_del_contact_name = AsyncMock()
         instance.nemo.async_set_wlan_config = AsyncMock()
 
         instance.sfp.async_get = AsyncMock(return_value=api["SFP.async_get"])
