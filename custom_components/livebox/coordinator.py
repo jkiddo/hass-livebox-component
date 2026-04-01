@@ -464,12 +464,15 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         data = (
             await self._make_request(self.api.dhcp.async_get_dhcp_staticleases)
         ).get("status") or []
-        devices = devices or {}
+        # Build case-insensitive MAC lookup from devices
+        mac_to_name: dict[str, str] = {}
+        for mac, dev in (devices or {}).items():
+            mac_to_name[mac.upper()] = dev.get("Name", "")
         if isinstance(data, list):
             return [
                 {
-                    "Name": devices.get(item.get("MACAddress"), {}).get(
-                        "Name", ""
+                    "Name": mac_to_name.get(
+                        (item.get("MACAddress") or "").upper(), ""
                     ),
                     "MAC Address": item.get("MACAddress"),
                     "IP Address": item.get("IPAddress"),

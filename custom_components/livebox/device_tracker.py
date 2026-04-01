@@ -220,7 +220,9 @@ class LiveboxDeviceScannerEntity(LiveboxEntity, ScannerEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Respond to a DataUpdateCoordinator update."""
-        self._device = self.coordinator.data.get("devices", {}).get(self.unique_id, {})
+        self._device = self.coordinator.data.get("devices", {}).get(
+            self._attr_mac_address, self._device
+        )
         self._attr_ip_address = self._device.get("IPAddress")
 
         self.async_write_ha_state()
