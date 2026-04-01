@@ -137,7 +137,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                     key: await self.async_get_device_schedule(key) for key in devices
                 },
                 "ddns": await self.async_get_ddns(),
-                "wifi_stats": await self.async_get_wifi_stats(),
+                "wifi_stats": await self.async_get_wifi_stats() if self._has_wifi_stats else {},
                 "fiber_status": await self.async_get_fiber_status(),
                 "fiber_stats": await self.async_get_fiber_stats(),
                 "remote_access": await self.async_is_remote_access(),
@@ -231,9 +231,20 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         ).get("status", {})
         return find_item(dsl0, "dsl.dsl0", {})
 
+    @property
+    def _is_fiber(self) -> bool:
+        """Return True if the WAN connection is fiber/gpon."""
+        if self.model in [3, 4]:
+            return False
+        if self.data:
+            link_type = self.data.get("wan_status", {}).get("LinkType", "")
+            if link_type == "dsl":
+                return False
+        return True
+
     async def async_get_fiber_status(self):
         """Get fiber status."""
-        if self.model in [4, 3]:
+        if not self._is_fiber:
             return {}
         if self.model == 5656:
             optical = (
@@ -304,14 +315,22 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                     )
         return devices
 
-    async def async_get_wifi_stats(self) -> bool:
+    async def async_get_wifi_stats(self) -> dict[str, Any]:
         """Get wifi stats."""
-        return (await self._make_request(self.api.nmc.async_get_wifi_stats)).get(
-            "data", {}
-        )
+        result = await self._make_request(self.api.nmc.async_get_wifi_stats)
+        if not result:
+            self._wifi_stats_available = False
+        return result.get("data", {})
+
+    @property
+    def _has_wifi_stats(self) -> bool:
+        """Return False if wifi stats endpoint is known to be unavailable."""
+        return getattr(self, "_wifi_stats_available", True)
 
     async def async_get_fiber_stats(self) -> bool:
         """Get fiber stats."""
+        if not self._is_fiber:
+            return {}
         if self.model == 4:
             intf = "eth0"
         elif self.model == 3:
@@ -528,7 +547,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             return await func(*args)
         except AiosysbusException as error:
-            _LOGGER.error("Error while execute: %s (%s)", func.__name__, error)
+            _LOGGER.debug("Error while execute: %s (%s)", func.__name__, error)
         return {}
 
     @property
