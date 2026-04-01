@@ -65,6 +65,8 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
     with patch("custom_components.livebox.coordinator.AIOSysbus") as mock:
         instance = mock.return_value
         instance.async_connect = AsyncMock(return_value=True)
+        instance._auth = MagicMock()
+        instance._auth.post = AsyncMock(return_value={})
         instance.async_get_permissions = AsyncMock(
             return_value=api["AIOSysbus.async_get_permissions"]
         )

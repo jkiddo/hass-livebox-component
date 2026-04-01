@@ -92,11 +92,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiveboxConfigEntry) -> b
         await coordinator.async_refresh()
 
     async def async_add_static_dhcp(call) -> None:
-        await coordinator.api.dhcp.async_set_dhcp_staticlease(
+        # Bypass aiosysbus bug (calls setLeaseTime instead of addStaticLease)
+        await coordinator.api._auth.post(
+            "DHCPv4.Server.Pool.default",
+            "addStaticLease",
             {
                 "MACAddress": call.data["mac_address"],
                 "IPAddress": call.data["ip_address"],
-            }
+            },
         )
         await coordinator.async_refresh()
 

@@ -328,10 +328,10 @@ class DECTSwitch(LiveboxEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Enable DECT radio."""
-        await self.coordinator.api.dect.async_set_dect_radio_state({"Enable": True})
+        await self.coordinator.api.dect.async_set_dect_radio_state({"state": True})
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Disable DECT radio."""
-        await self.coordinator.api.dect.async_set_dect_radio_state({"Enable": False})
+        await self.coordinator.api.dect.async_set_dect_radio_state({"state": False})
         await self.coordinator.async_request_refresh()

@@ -28,7 +28,7 @@ from .const import (
     DEFAULT_WIFI_TRACKING,
     DOMAIN,
 )
-from .helpers import find_item
+from .helpers import find_item, load_oui_db_sync
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=1)
@@ -75,6 +75,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_setup(self) -> None:
         """Coordinator setup."""
+        await self.hass.async_add_executor_job(load_oui_db_sync)
         self.api = AIOSysbus(
             username=self.config_entry.data[CONF_USERNAME],
             password=self.config_entry.data[CONF_PASSWORD],

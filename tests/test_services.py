@@ -26,8 +26,10 @@ async def test_service_add_static_dhcp(
         blocking=True,
     )
 
-    AIOSysbus.dhcp.async_set_dhcp_staticlease.assert_called_once_with(
-        {"MACAddress": "AA:BB:CC:DD:EE:FF", "IPAddress": "192.168.1.100"}
+    AIOSysbus._auth.post.assert_called_with(
+        "DHCPv4.Server.Pool.default",
+        "addStaticLease",
+        {"MACAddress": "AA:BB:CC:DD:EE:FF", "IPAddress": "192.168.1.100"},
     )
 
 

@@ -10,22 +10,32 @@ _LOGGER = logging.getLogger(__name__)
 _OUI_DB: dict[str, str] | None = None
 
 
+def _load_oui_db() -> dict[str, str]:
+    """Load the OUI database from disk (blocking, call from executor)."""
+    oui_path = Path(__file__).parent / "oui.json.gz"
+    if oui_path.exists():
+        try:
+            with gzip.open(oui_path, "rt") as f:
+                return json.load(f)
+        except Exception:
+            _LOGGER.debug("Failed to load OUI database")
+    return {}
+
+
+def load_oui_db_sync() -> None:
+    """Pre-load OUI database synchronously (call once at startup from executor)."""
+    global _OUI_DB
+    if _OUI_DB is None:
+        _OUI_DB = _load_oui_db()
+
+
 def lookup_mac_vendor(mac: str | None) -> str:
     """Look up the manufacturer for a MAC address using the OUI database."""
     global _OUI_DB
     if not mac:
         return ""
     if _OUI_DB is None:
-        oui_path = Path(__file__).parent / "oui.json.gz"
-        if oui_path.exists():
-            try:
-                with gzip.open(oui_path, "rt") as f:
-                    _OUI_DB = json.load(f)
-            except Exception:
-                _LOGGER.debug("Failed to load OUI database")
-                _OUI_DB = {}
-        else:
-            _OUI_DB = {}
+        _OUI_DB = _load_oui_db()
     prefix = mac.upper().replace("-", ":")[0:8]
     return _OUI_DB.get(prefix, "")
 
