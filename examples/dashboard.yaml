@@ -104,6 +104,16 @@ sections:
         color: purple
 
       - type: tile
+        entity: switch.hgw5_wifi_2_4_ghz
+        name: 2.4 GHz
+        color: cyan
+
+      - type: tile
+        entity: switch.hgw5_wifi_5_ghz
+        name: 5 GHz
+        color: teal
+
+      - type: tile
         entity: switch.hgw5_wps
         name: WPS
         color: amber
@@ -117,25 +127,25 @@ sections:
       - type: entities
         title: "2.4 GHz Radio"
         entities:
-          - entity: sensor.hgw5_wifi_24ghz_channel
+          - entity: sensor.hgw5_wifi_2_4ghz_channel
             name: Channel
-          - entity: sensor.hgw5_wifi_24ghz_clients
+          - entity: sensor.hgw5_wifi_2_4ghz_clients
             name: Connected Clients
           - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
+            entity: sensor.hgw5_wifi_2_4ghz_channel
             attribute: standard
             name: Standard
           - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
+            entity: sensor.hgw5_wifi_2_4ghz_channel
             attribute: max_bitrate_mbps
             name: Max Bitrate
             suffix: " Mbps"
           - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
+            entity: sensor.hgw5_wifi_2_4ghz_channel
             attribute: bandwidth
             name: Channel Bandwidth
           - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
+            entity: sensor.hgw5_wifi_2_4ghz_channel
             attribute: auto_channel
             name: Auto Channel
 
