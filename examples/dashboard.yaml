@@ -359,12 +359,7 @@ sections:
 
       - type: markdown
         title: Static DHCP Leases
-        content: >
-          | MAC | IP Address |
-          |-----|-----------|
-          {% for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}
-          | {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |
-          {% endfor %}
+        content: "| MAC | IP Address |\n|-----|-----------|{%- for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}\n| {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |{%- endfor %}"
 
   # --------------------------------------------------------------------------
   # Section 9: Phone & Calls
@@ -404,18 +399,8 @@ sections:
         card:
           type: markdown
           title: Missed Calls
-          content: >
-            {% for call in state_attr('binary_sensor.hgw5_call_missed', 'missed_calls') or [] %}
-            - **{{ call.phone_number }}** at {{ call.date }}
-            {% endfor %}
+          content: "{%- for call in state_attr('binary_sensor.hgw5_call_missed', 'missed_calls') or [] %}\n- **{{ call.phone_number }}** at {{ call.date }}\n{%- endfor %}"
 
       - type: markdown
         title: Devices on Network
-        content: >
-          | Device | IP | Connection | Signal |
-          |--------|----|------------|--------|
-          {% for state in states.device_tracker
-            if state.attributes.get('source_type') == 'router'
-            and state.state == 'home' %}
-          | {{ state.name }} | {{ state.attributes.ip_address | default('-') }} | {{ state.attributes.connection | default('?') }} {{ state.attributes.band | default('') }} | {{ state.attributes.signal_quality | default('-') }} |
-          {% endfor %}
+        content: "| Device | IP | Connection | Signal |\n|--------|----|------------|--------|{%- for state in states.device_tracker if state.attributes.get('source_type') == 'router' and state.state == 'home' %}\n| {{ state.name }} | {{ state.attributes.ip_address | default('-') }} | {{ state.attributes.connection | default('?') }} {{ state.attributes.band | default('') }} | {{ state.attributes.signal_quality | default('-') }} |{%- endfor %}"
