@@ -2,21 +2,21 @@
 # Orange Livebox - Automation Examples
 #
 # Add these to your automations.yaml or via Settings > Automations.
-# Replace "livebox_7" with your actual device name.
+# Replace "hgw5" with your actual device name.
 ##############################################################################
 
 # --- Notify on new missed call ---
 - alias: "Livebox - Missed call notification"
   trigger:
     - platform: state
-      entity_id: binary_sensor.livebox_7_call_missed
+      entity_id: binary_sensor.hgw5_call_missed
       to: "on"
   action:
     - action: notify.mobile_app
       data:
         title: "Missed Call"
         message: >
-          Missed call from {{ state_attr('binary_sensor.livebox_7_call_missed',
+          Missed call from {{ state_attr('binary_sensor.hgw5_call_missed',
           'missed_calls')[0].phone_number }}
 
 # --- Disable WPS at night for security ---
@@ -27,13 +27,13 @@
   action:
     - action: switch.turn_off
       target:
-        entity_id: switch.livebox_7_wps
+        entity_id: switch.hgw5_wps
 
 # --- Alert on remote access enabled ---
 - alias: "Livebox - Remote access alert"
   trigger:
     - platform: state
-      entity_id: binary_sensor.livebox_7_remote_access
+      entity_id: binary_sensor.hgw5_remote_access
       to: "on"
   action:
     - action: notify.mobile_app
@@ -49,7 +49,7 @@
   action:
     - action: switch.turn_off
       target:
-        entity_id: switch.livebox_7_wifi
+        entity_id: switch.hgw5_wifi
 
 - alias: "Livebox - WiFi on at 7am"
   trigger:
@@ -58,7 +58,7 @@
   action:
     - action: switch.turn_on
       target:
-        entity_id: switch.livebox_7_wifi
+        entity_id: switch.hgw5_wifi
 
 # --- Disable guest WiFi when nobody is home ---
 - alias: "Livebox - Guest WiFi off when away"
@@ -69,7 +69,7 @@
   action:
     - action: switch.turn_off
       target:
-        entity_id: switch.livebox_7_guest_wifi
+        entity_id: switch.hgw5_guest_wifi
 
 - alias: "Livebox - Guest WiFi on when home"
   trigger:
@@ -79,7 +79,7 @@
   action:
     - action: switch.turn_on
       target:
-        entity_id: switch.livebox_7_guest_wifi
+        entity_id: switch.hgw5_guest_wifi
 
 # --- Turn off 5GHz at night to save power, keep 2.4GHz for IoT devices ---
 - alias: "Livebox - 5GHz off at night"
@@ -90,8 +90,8 @@
     - action: switch.turn_off
       target:
         entity_id:
-          - switch.livebox_7_wifi_5_ghz
-          - switch.livebox_7_wifi_6_ghz
+          - switch.hgw5_wifi_5_ghz
+          - switch.hgw5_wifi_6_ghz
 
 - alias: "Livebox - 5GHz on in the morning"
   trigger:
@@ -101,8 +101,8 @@
     - action: switch.turn_on
       target:
         entity_id:
-          - switch.livebox_7_wifi_5_ghz
-          - switch.livebox_7_wifi_6_ghz
+          - switch.hgw5_wifi_5_ghz
+          - switch.hgw5_wifi_6_ghz
 
 # --- Toggle WiFi via a button press (e.g. Zigbee button) ---
 - alias: "Livebox - Toggle WiFi with button"
@@ -115,7 +115,7 @@
   action:
     - action: switch.toggle
       target:
-        entity_id: switch.livebox_7_wifi
+        entity_id: switch.hgw5_wifi
 
 # --- Block a kid's device from internet at bedtime ---
 - alias: "Livebox - Block kid tablet at bedtime"

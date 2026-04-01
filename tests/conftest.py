@@ -136,10 +136,15 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
             if args[0] == "data":
                 return api["NeMo.async_get_MIBs::data"]
             if args[0] == "lan":
-                if args[1] == {"mibs": "wlanvap"}:
-                    return {
-                        "status": api["NeMo.async_get_MIBs::lan"]["status"]["wlanvap"]
-                    }
+                lan_status = api["NeMo.async_get_MIBs::lan"]["status"]
+                if len(args) > 1 and isinstance(args[1], dict):
+                    mibs_filter = args[1].get("mibs", "")
+                    if mibs_filter == "wlanvap":
+                        return {"status": lan_status.get("wlanvap", {})}
+                    if mibs_filter == "wlanradio":
+                        return {"status": lan_status.get("wlanradio", {})}
+                    if mibs_filter == "eth":
+                        return {"status": lan_status.get("eth", {})}
                 return api["NeMo.async_get_MIBs::lan"]
             if args[0] == "veip0":
                 return api["NeMo.async_get_MIBs::veip0"]
@@ -186,6 +191,9 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
         )
         instance.dhcp.async_set_dhcp_staticlease = AsyncMock()
         instance.dhcp.async_del_dhcp_staticlease = AsyncMock()
+        instance.dhcp.async_get_dhcp_staticleases = AsyncMock(
+            return_value=api.get("Dhcp.async_get_dhcp_staticleases", {"status": []})
+        )
 
         def _mock_dhcp_leases(*args, **kwargs):
             """Mock for async_get_dhcp_leases to return different values based on first arg."""

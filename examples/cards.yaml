@@ -4,7 +4,7 @@
 # These cards require third-party frontend components installed via HACS.
 # Copy individual cards into your dashboard's YAML editor.
 #
-# Replace "livebox_7" with your actual device name.
+# Replace "hgw5" with your actual device name.
 ##############################################################################
 
 
@@ -20,34 +20,34 @@
     - type: custom:mushroom-chips-card
       chips:
         - type: entity
-          entity: switch.livebox_7_wifi
+          entity: switch.hgw5_wifi
           icon: mdi:wifi
           tap_action:
             action: toggle
         - type: entity
-          entity: switch.livebox_7_guest_wifi
+          entity: switch.hgw5_guest_wifi
           icon: mdi:wifi-lock-open
           tap_action:
             action: toggle
         - type: entity
-          entity: switch.livebox_7_wifi_2_4_ghz
+          entity: switch.hgw5_wifi_2_4_ghz
           content: 2.4G
           tap_action:
             action: toggle
         - type: entity
-          entity: switch.livebox_7_wifi_5_ghz
+          entity: switch.hgw5_wifi_5_ghz
           content: 5G
           tap_action:
             action: toggle
         - type: entity
-          entity: switch.livebox_7_wps
+          entity: switch.hgw5_wps
           icon: mdi:wifi-settings
           tap_action:
             action: toggle
 
 # --- Mushroom tile for WAN with sub-info ---
 - type: custom:mushroom-entity-card
-  entity: binary_sensor.livebox_7_wan_status
+  entity: binary_sensor.hgw5_wan_status
   name: Internet Connection
   icon: mdi:wan
   secondary_info: last-updated
@@ -64,10 +64,10 @@
 - type: custom:mini-graph-card
   name: Network Traffic
   entities:
-    - entity: sensor.livebox_7_fiber_rx
+    - entity: sensor.hgw5_fiber_rx
       name: Download
       color: "#4CAF50"
-    - entity: sensor.livebox_7_fiber_tx
+    - entity: sensor.hgw5_fiber_tx
       name: Upload
       color: "#2196F3"
   hours_to_show: 24

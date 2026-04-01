@@ -1,22 +1,5 @@
 ##############################################################################
-# Orange Livebox - Home Assistant Dashboard
-#
-# Entity IDs use your Livebox's ProductClass as prefix (e.g. "hgw5",
-# "livebox_7", "livebox_fibre"). To find yours:
-#   Developer Tools > States > filter "livebox" or your product name
-#
-# Some sensors are DISABLED by default and must be enabled first:
-#   Settings > Devices > Livebox > Entities > (enable the greyed-out ones)
-#   - Uptime, WiFi Rx/Tx, DHCP Leases, Guest DHCP Leases, Ports Forwarding
-#
-# Per-band WiFi switches (2.4/5/6 GHz) only appear if your Livebox
-# reports WLAN VAP data. If missing, use the main WiFi switch instead.
-#
-# This file is a complete dashboard view. Paste it into a manual dashboard
-# via Settings > Dashboards > Add Dashboard > (three dots) > Edit in YAML.
-#
-# For individual card snippets and HACS examples, see cards.yaml
-# For automation examples, see automations.yaml
+# Orange Livebox - Installed Dashboard (tailored to your HGW5 setup)
 ##############################################################################
 
 title: Livebox
@@ -30,57 +13,19 @@ sections:
   - type: grid
     title: Network Status
     cards:
-      - type: entities
-        title: WAN Connection
-        entities:
-          - entity: binary_sensor.hgw5_wan_status
-            name: Status
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: link_type
-            name: Link Type
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: link_state
-            name: Link State
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: wan_ipaddress
-            name: WAN IP
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: wan_gw
-            name: Gateway
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: wan_ipv6address
-            name: WAN IPv6
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: wired clients
-            name: Wired Clients
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: wireless clients
-            name: Wireless Clients
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
-            attribute: uptime
-            name: Uptime Since
+      - type: tile
+        entity: binary_sensor.hgw5_wan_status
+        name: WAN
+        color: green
 
-      - type: entities
-        title: System
-        entities:
-          - entity: sensor.hgw5_reboots
-            name: Total Reboots
-          - entity: binary_sensor.hgw5_remote_access
-            name: Remote Access
-          - entity: binary_sensor.hgw5_dynamic_dns_no_ip
-            name: Dynamic DNS
+      - type: tile
+        entity: binary_sensor.hgw5_remote_access
+        name: Remote Access
+        color: red
 
       - type: tile
         entity: button.hgw5_livebox_restart
-        name: Restart Livebox
+        name: Restart
         color: red
         tap_action:
           action: toggle
@@ -109,89 +54,10 @@ sections:
         color: amber
 
   # --------------------------------------------------------------------------
-  # Section 3: WiFi Radio Details
+  # Section 3: Action Buttons
   # --------------------------------------------------------------------------
   - type: grid
-    title: WiFi Radios
-    cards:
-      - type: entities
-        title: "2.4 GHz Radio"
-        entities:
-          - entity: sensor.hgw5_wifi_24ghz_channel
-            name: Channel
-          - entity: sensor.hgw5_wifi_24ghz_clients
-            name: Connected Clients
-          - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
-            attribute: standard
-            name: Standard
-          - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
-            attribute: max_bitrate_mbps
-            name: Max Bitrate
-            suffix: " Mbps"
-          - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
-            attribute: bandwidth
-            name: Channel Bandwidth
-          - type: attribute
-            entity: sensor.hgw5_wifi_24ghz_channel
-            attribute: auto_channel
-            name: Auto Channel
-
-      - type: entities
-        title: "5 GHz Radio"
-        entities:
-          - entity: sensor.hgw5_wifi_5ghz_channel
-            name: Channel
-          - entity: sensor.hgw5_wifi_5ghz_clients
-            name: Connected Clients
-          - type: attribute
-            entity: sensor.hgw5_wifi_5ghz_channel
-            attribute: standard
-            name: Standard
-          - type: attribute
-            entity: sensor.hgw5_wifi_5ghz_channel
-            attribute: max_bitrate_mbps
-            name: Max Bitrate
-            suffix: " Mbps"
-          - type: attribute
-            entity: sensor.hgw5_wifi_5ghz_channel
-            attribute: bandwidth
-            name: Channel Bandwidth
-
-  # --------------------------------------------------------------------------
-  # Section 4: Ethernet Ports
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Ethernet Ports
-    cards:
-      - type: entities
-        entities:
-          - entity: sensor.hgw5_eth1_link_speed
-            name: ETH1
-          - entity: sensor.hgw5_eth2_link_speed
-            name: ETH2
-          - entity: sensor.hgw5_eth3_link_speed
-            name: ETH3
-          - entity: sensor.hgw5_eth4_link_speed
-            name: ETH4
-
-  # --------------------------------------------------------------------------
-  # Section 5: Guest WiFi Details
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Guest WiFi
-    cards:
-      - type: entity
-        entity: sensor.hgw5_guest_wifi_bandwidth_limit
-        name: Bandwidth Limit
-
-  # --------------------------------------------------------------------------
-  # Section 6: Action Buttons
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: WiFi Actions
+    title: Actions
     columns: 3
     cards:
       - type: button
@@ -264,13 +130,6 @@ sections:
               - switch.hgw5_wifi
               - switch.hgw5_guest_wifi
 
-  # --------------------------------------------------------------------------
-  # Section 7: Network Management
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Network Management
-    columns: 3
-    cards:
       - type: button
         name: Add Static DHCP
         icon: mdi:ip-network
@@ -344,30 +203,84 @@ sections:
             text: "Clear all missed calls?"
 
   # --------------------------------------------------------------------------
-  # Section 8: DHCP & Port Forwarding
+  # Section 4: Connection Speed
   # --------------------------------------------------------------------------
   - type: grid
-    title: Network Info
+    title: Connection Speed
     cards:
-      - type: entities
-        title: Counters
-        entities:
-          - entity: sensor.hgw5_callers
-            name: Total Calls
-          - entity: sensor.hgw5_static_dhcp_leases
-            name: Static DHCP Leases
+      - type: gauge
+        entity: sensor.hgw5_xdsl_download
+        name: Download
+        min: 0
+        max: 1000
+        severity:
+          green: 100
+          yellow: 30
+          red: 0
+        needle: true
 
-      - type: markdown
-        title: Static DHCP Leases
-        content: >
-          | MAC | IP Address |
-          |-----|-----------|
-          {% for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}
-          | {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |
-          {% endfor %}
+      - type: gauge
+        entity: sensor.hgw5_xdsl_upload
+        name: Upload
+        min: 0
+        max: 300
+        severity:
+          green: 30
+          yellow: 10
+          red: 0
+        needle: true
 
   # --------------------------------------------------------------------------
-  # Section 9: Phone & Calls
+  # Section 5: Fiber Signal
+  # --------------------------------------------------------------------------
+  - type: grid
+    title: Fiber Signal
+    cards:
+      - type: gauge
+        entity: sensor.hgw5_fiber_power_rx
+        name: Fiber RX Power
+        unit: dBm
+        min: -30
+        max: 0
+        severity:
+          green: -20
+          yellow: -25
+          red: -30
+        needle: true
+
+      - type: gauge
+        entity: sensor.hgw5_fiber_power_tx
+        name: Fiber TX Power
+        unit: dBm
+        min: -10
+        max: 10
+        severity:
+          green: 0
+          yellow: -5
+          red: -10
+        needle: true
+
+  # --------------------------------------------------------------------------
+  # Section 6: Traffic History
+  # --------------------------------------------------------------------------
+  - type: grid
+    title: Traffic
+    cards:
+      - type: statistics-graph
+        entities:
+          - entity: sensor.hgw5_fiber_rx
+            name: Download
+          - entity: sensor.hgw5_fiber_tx
+            name: Upload
+        days_to_show: 7
+        stat_types:
+          - change
+        chart_type: bar
+        period: day
+        title: Daily Traffic
+
+  # --------------------------------------------------------------------------
+  # Section 7: Phone & Calls
   # --------------------------------------------------------------------------
   - type: grid
     title: Phone
@@ -392,10 +305,108 @@ sections:
         title: Call Log
 
   # --------------------------------------------------------------------------
-  # Section 10: Connected Devices
+  # Section 8: Network Details
   # --------------------------------------------------------------------------
   - type: grid
-    title: Connected Devices
+    title: Network Details
+    cards:
+      - type: entities
+        title: WAN Details
+        entities:
+          - entity: binary_sensor.hgw5_wan_status
+            name: Status
+          - type: attribute
+            entity: binary_sensor.hgw5_wan_status
+            attribute: link_type
+            name: Link Type
+          - type: attribute
+            entity: binary_sensor.hgw5_wan_status
+            attribute: wan_ipaddress
+            name: WAN IP
+          - type: attribute
+            entity: binary_sensor.hgw5_wan_status
+            attribute: wan_ipv6address
+            name: WAN IPv6
+          - type: attribute
+            entity: binary_sensor.hgw5_wan_status
+            attribute: wired clients
+            name: Wired Clients
+          - type: attribute
+            entity: binary_sensor.hgw5_wan_status
+            attribute: wireless clients
+            name: Wireless Clients
+
+      - type: entities
+        title: Counters
+        entities:
+          - entity: sensor.hgw5_callers
+            name: Total Calls
+
+  # --------------------------------------------------------------------------
+  # Section 9: DSL Line Quality
+  # --------------------------------------------------------------------------
+  - type: grid
+    title: DSL Line Quality
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.hgw5_xdsl_download
+            name: Download Rate
+          - type: attribute
+            entity: sensor.hgw5_xdsl_download
+            attribute: downstream_maxrate
+            name: Max Download Rate
+            suffix: " kbit/s"
+          - type: attribute
+            entity: sensor.hgw5_xdsl_download
+            attribute: downstream_noisemargin
+            name: Noise Margin (Down)
+            suffix: " dB"
+          - type: attribute
+            entity: sensor.hgw5_xdsl_download
+            attribute: downstream_lineattenuation
+            name: Line Attenuation (Down)
+            suffix: " dB"
+          - entity: sensor.hgw5_xdsl_upload
+            name: Upload Rate
+          - type: attribute
+            entity: sensor.hgw5_xdsl_upload
+            attribute: upstream_noisemargin
+            name: Noise Margin (Up)
+            suffix: " dB"
+
+  # --------------------------------------------------------------------------
+  # Section 10: Fiber Optics Details
+  # --------------------------------------------------------------------------
+  - type: grid
+    title: Fiber Optics
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.hgw5_fiber_power_rx
+            name: RX Power
+          - entity: sensor.hgw5_fiber_power_tx
+            name: TX Power
+          - type: attribute
+            entity: sensor.hgw5_fiber_power_rx
+            attribute: Temperature
+            name: Module Temperature
+            suffix: " C"
+          - type: attribute
+            entity: sensor.hgw5_fiber_power_rx
+            attribute: Voltage
+            name: Module Voltage
+            suffix: " V"
+          - type: attribute
+            entity: sensor.hgw5_fiber_power_rx
+            attribute: ONU State
+            name: ONU State
+
+  # --------------------------------------------------------------------------
+  # Section 11: Connected Devices
+  # --------------------------------------------------------------------------
+  - type: grid
+    title: Details
     cards:
       - type: conditional
         conditions:
@@ -410,7 +421,7 @@ sections:
             {% endfor %}
 
       - type: markdown
-        title: Devices on Network
+        title: Connected Devices
         content: >
           | Device | IP | Connection | Signal |
           |--------|----|------------|--------|

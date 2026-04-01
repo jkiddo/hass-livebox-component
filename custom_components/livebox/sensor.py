@@ -275,6 +275,33 @@ SENSOR_TYPES: Final[list[LiveboxSensorEntityDescription]] = [
         translation_key="uptime",
         entity_registry_enabled_default=False,
     ),
+    LiveboxSensorEntityDescription(
+        key="reboots",
+        name="Reboots",
+        icon="mdi:restart",
+        value_fn=lambda x: find_item(x, "infos.NumberOfReboots", 0),
+        state_class=SensorStateClass.TOTAL,
+        translation_key="reboots",
+    ),
+    LiveboxSensorEntityDescription(
+        key="static_dhcp_leases",
+        name="Static DHCP Leases",
+        icon="mdi:ip-network",
+        value_fn=lambda x: len(x.get("static_dhcp_leases", [])),
+        state_class=SensorStateClass.TOTAL,
+        translation_key="static_dhcp_leases",
+        attrs={"Leases": lambda x: x.get("static_dhcp_leases")},
+    ),
+    LiveboxSensorEntityDescription(
+        key="guest_wifi_bandwidth",
+        name="Guest WiFi Bandwidth Limit",
+        icon="mdi:wifi-lock-open",
+        value_fn=lambda x: find_item(x, "guest_wifi_details.bandwidth_limit"),
+        native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.DATA_RATE,
+        translation_key="guest_wifi_bandwidth",
+    ),
 ]
 
 
@@ -315,7 +342,67 @@ async def async_setup_entry(
             )
         )
 
-    for description in SENSOR_TYPES + sensor_stats:
+    # Dynamic WiFi radio sensors (one per radio band)
+    sensor_radios = []
+    for radio_name, radio in coordinator.data.get("wlan_radios", {}).items():
+        band = radio.get("band", radio_name)
+        band_key = band.lower().replace(".", "").replace(" ", "_")
+        sensor_radios.append(
+            LiveboxSensorEntityDescription(
+                key=f"wifi_{band_key}_channel",
+                name=f"WiFi {band} Channel",
+                icon="mdi:wifi-cog",
+                value_fn=get_closure_value_fn(f"wlan_radios.{radio_name}.channel"),
+                translation_key=f"wifi_{band_key}_channel",
+                attrs={
+                    "standard": lambda x, rn=radio_name: find_item(
+                        x, f"wlan_radios.{rn}.standard"
+                    ),
+                    "bandwidth": lambda x, rn=radio_name: find_item(
+                        x, f"wlan_radios.{rn}.channel_bandwidth"
+                    ),
+                    "max_bitrate_mbps": lambda x, rn=radio_name: find_item(
+                        x, f"wlan_radios.{rn}.max_bitrate"
+                    ),
+                    "auto_channel": lambda x, rn=radio_name: find_item(
+                        x, f"wlan_radios.{rn}.auto_channel"
+                    ),
+                    "status": lambda x, rn=radio_name: find_item(
+                        x, f"wlan_radios.{rn}.status"
+                    ),
+                },
+            )
+        )
+        sensor_radios.append(
+            LiveboxSensorEntityDescription(
+                key=f"wifi_{band_key}_clients",
+                name=f"WiFi {band} Clients",
+                icon="mdi:wifi-marker",
+                value_fn=get_closure_value_fn(
+                    f"wlan_radios.{radio_name}.active_clients"
+                ),
+                state_class=SensorStateClass.MEASUREMENT,
+                translation_key=f"wifi_{band_key}_clients",
+            )
+        )
+
+    # Dynamic ethernet port sensors
+    sensor_eth = []
+    for port_name, port in coordinator.data.get("eth_ports", {}).items():
+        sensor_eth.append(
+            LiveboxSensorEntityDescription(
+                key=f"{port_name}_speed",
+                name=f"{port_name.upper()} Link Speed",
+                icon="mdi:ethernet",
+                value_fn=get_closure_value_fn(f"eth_ports.{port_name}.speed"),
+                native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
+                state_class=SensorStateClass.MEASUREMENT,
+                device_class=SensorDeviceClass.DATA_RATE,
+                translation_key=f"{port_name}_speed",
+            )
+        )
+
+    for description in SENSOR_TYPES + sensor_stats + sensor_radios + sensor_eth:
         if description.key in ["up", "down"] and linktype in ["gpon", "sfp"]:
             continue
         entities.append(LiveboxSensor(coordinator, description))

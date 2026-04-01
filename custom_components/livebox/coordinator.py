@@ -142,6 +142,10 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 "fiber_stats": await self.async_get_fiber_stats(),
                 "remote_access": await self.async_is_remote_access(),
                 "wlan_vaps": await self.async_get_wlan_vaps(),
+                "wlan_radios": await self.async_get_wlan_radios(),
+                "eth_ports": await self.async_get_eth_ports(),
+                "guest_wifi_details": await self.async_get_guest_wifi_details(),
+                "static_dhcp_leases": await self.async_get_static_dhcp_leases(),
                 "lan": await self.async_get_lan(devices),
                 "upnp": await self.async_get_port_forwarding(),
                 "dhcp_leases": await self.async_get_dhcp_leases(),
@@ -238,7 +242,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
             return False
         if self.data:
             link_type = self.data.get("wan_status", {}).get("LinkType", "")
-            if link_type == "dsl":
+            if link_type in ("dsl", "ethernet"):
                 return False
         return True
 
@@ -355,14 +359,14 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_is_wifi(self) -> bool:
         """Get wireless status."""
-        wifi = (await self._make_request(self.api.nmc.async_get_wifi)).get("status") or {}
+        result = await self._make_request(self.api.nmc.async_get_wifi)
+        wifi = result.get("status") or result.get("data") or {}
         return wifi.get("Enable") is True
 
     async def async_is_guest_wifi(self) -> bool:
         """Get Guest Wifi status."""
-        guest_wifi = (
-            await self._make_request(self.api.nmc.async_get_guest_wifi)
-        ).get("status") or {}
+        result = await self._make_request(self.api.nmc.async_get_guest_wifi)
+        guest_wifi = result.get("status") or result.get("data") or {}
         return guest_wifi.get("Enable") is True
 
     async def async_get_ddns(self) -> list[Any]:
@@ -396,6 +400,77 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                     async_dispatcher_send(self.hass, self.signal_device_new)
                     async_dispatcher_send(self.hass, self.signal_wan_access_new)
                     break
+
+    async def async_get_wlan_radios(self) -> dict[str, Any]:
+        """Get WLAN radio information (channel, standard, clients)."""
+        status = (
+            await self._make_request(
+                self.api.nemo.async_get_MIBs, "lan", {"mibs": "wlanradio"}
+            )
+        ).get("status") or {}
+
+        wlanradio = status.get("wlanradio", status) if isinstance(status, dict) else {}
+
+        result = {}
+        for name, radio in wlanradio.items():
+            if not isinstance(radio, dict) or "OperatingFrequencyBand" not in radio:
+                continue
+            result[name] = {
+                "band": radio.get("OperatingFrequencyBand"),
+                "channel": radio.get("Channel"),
+                "standard": radio.get("OperatingStandards"),
+                "max_bitrate": radio.get("MaxBitRate"),
+                "active_clients": radio.get("ActiveAssociatedDevices", 0),
+                "channel_bandwidth": radio.get("OperatingChannelBandwidth"),
+                "status": radio.get("RadioStatus"),
+                "auto_channel": radio.get("AutoChannelEnable", False),
+            }
+        return result
+
+    async def async_get_eth_ports(self) -> dict[str, Any]:
+        """Get ethernet port status from MIBs."""
+        status = (
+            await self._make_request(
+                self.api.nemo.async_get_MIBs, "lan", {"mibs": "eth"}
+            )
+        ).get("status") or {}
+
+        eth = status.get("eth", status) if isinstance(status, dict) else {}
+
+        result = {}
+        for name, port in eth.items():
+            if not isinstance(port, dict) or "CurrentBitRate" not in port:
+                continue
+            speed = port.get("CurrentBitRate", -1)
+            result[name] = {
+                "speed": speed,
+                "link": speed > 0,
+            }
+        return result
+
+    async def async_get_guest_wifi_details(self) -> dict[str, Any]:
+        """Get guest WiFi details including bandwidth limit."""
+        result = await self._make_request(self.api.nmc.async_get_guest_wifi)
+        details = result.get("status") or result.get("data") or {}
+        return {
+            "bandwidth_limit": details.get("BandwidthLimitation"),
+            "status": details.get("Status"),
+        }
+
+    async def async_get_static_dhcp_leases(self) -> list[dict[str, Any]]:
+        """Get static DHCP leases."""
+        data = (
+            await self._make_request(self.api.dhcp.async_get_dhcp_staticleases)
+        ).get("status") or []
+        if isinstance(data, list):
+            return [
+                {
+                    "MAC Address": item.get("MACAddress"),
+                    "IP Address": item.get("IPAddress"),
+                }
+                for item in data
+            ]
+        return []
 
     async def async_get_port_forwarding(self) -> list[dict[str, Any]]:
         """Get port forwarding."""
@@ -488,14 +563,20 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_get_wlan_vaps(self) -> dict[str, Any]:
         """Get WLAN VAP information for bands and WPS status."""
-        wlanvap = (
+        status = (
             await self._make_request(
                 self.api.nemo.async_get_MIBs, "lan", {"mibs": "wlanvap"}
             )
         ).get("status") or {}
 
+        # Some models return {vap_name: {...}} directly,
+        # others nest it under {"wlanvap": {vap_name: {...}}}
+        wlanvap = status.get("wlanvap", status) if isinstance(status, dict) else {}
+
         result = {}
         for vap_name, vap_data in wlanvap.items():
+            if not isinstance(vap_data, dict) or "VAPStatus" not in vap_data:
+                continue
             band = _get_vap_band(vap_name)
             if band is None:
                 continue
