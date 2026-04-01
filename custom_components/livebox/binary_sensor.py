@@ -38,7 +38,10 @@ BINARYSENSOR_TYPES: Final[tuple[LiveboxBinarySensorEntityDescription, ...]] = (
         name="WAN Status",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda x: find_item(x, "wan_status.WanState", "").lower() == "up",
+        value_fn=lambda x: (
+            find_item(x, "wan_status.WanState", "").lower() == "up"
+            or find_item(x, "wan_status.LinkState", "").lower() == "up"
+        ),
         attrs={
             "link_type": lambda x: find_item(x, "wan_status.LinkType"),
             "link_state": lambda x: find_item(x, "wan_status.LinkState"),

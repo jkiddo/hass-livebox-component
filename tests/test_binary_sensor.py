@@ -38,6 +38,7 @@ async def test_binary_sensor_link_status(
     # --- Test for OFF state ---
     # Set the status to 0 (Disconnected)
     info_data["data"]["WanState"] = "down"
+    info_data["data"]["LinkState"] = "down"
     AIOSysbus.nmc.async_get_wan_status.return_value = info_data
 
     # Trigger a refresh of the coordinator
