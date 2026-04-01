@@ -140,12 +140,19 @@ class LiveboxDeviceScannerEntity(LiveboxEntity, ScannerEntity):
                 case _:
                     signal_quality = "unknown"
 
+            band = self._device.get("OperatingFrequencyBand")
+            if band is None:
+                # Infer band from interface name for models that don't report it
+                if iname in ("wl0", "wlan0", "wlguest2"):
+                    band = "2.4GHz"
+                elif iname in ("wl1", "eth6", "wlguest5"):
+                    band = "5GHz"
+
             attrs.update(
                 {
-                    "band": self._device.get("OperatingFrequencyBand"),
+                    "band": band,
                     "signal_strength": self._device.get("SignalStrength"),
                     "signal_quality": signal_quality,
-                    "frenquency_band": self._device.get("OperatingFrequencyBand"),
                     "connection": "wifi"
                     if iname not in ["wlguest2", "wlguest5"]
                     else "guestwifi",

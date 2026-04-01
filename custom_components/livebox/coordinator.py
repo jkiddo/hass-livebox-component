@@ -145,7 +145,7 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 "wlan_radios": await self.async_get_wlan_radios(),
                 "eth_ports": await self.async_get_eth_ports(),
                 "guest_wifi_details": await self.async_get_guest_wifi_details(),
-                "static_dhcp_leases": await self.async_get_static_dhcp_leases(),
+                "static_dhcp_leases": await self.async_get_static_dhcp_leases(devices),
                 "lan": await self.async_get_lan(devices),
                 "upnp": await self.async_get_port_forwarding(),
                 "dhcp_leases": await self.async_get_dhcp_leases(),
@@ -457,14 +457,20 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
             "status": details.get("Status"),
         }
 
-    async def async_get_static_dhcp_leases(self) -> list[dict[str, Any]]:
-        """Get static DHCP leases."""
+    async def async_get_static_dhcp_leases(
+        self, devices: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
+        """Get static DHCP leases with hostname lookup from devices."""
         data = (
             await self._make_request(self.api.dhcp.async_get_dhcp_staticleases)
         ).get("status") or []
+        devices = devices or {}
         if isinstance(data, list):
             return [
                 {
+                    "Name": devices.get(item.get("MACAddress"), {}).get(
+                        "Name", ""
+                    ),
                     "MAC Address": item.get("MACAddress"),
                     "IP Address": item.get("IPAddress"),
                 }

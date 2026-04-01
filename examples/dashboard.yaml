@@ -366,10 +366,20 @@ sections:
             name: Total Calls
           - entity: sensor.hgw5_static_dhcp_leases
             name: Static DHCP Leases
+          - entity: sensor.hgw5_ports_forwarding
+            name: Port Forwarding Rules
+          - entity: sensor.hgw5_dhcp_leases
+            name: DHCP Leases
+          - entity: sensor.hgw5_uptime
+            name: Uptime
+
+      - type: markdown
+        title: Port Forwarding
+        content: "| Rule | Destination | WAN Port | Internal Port |\n|------|------------|----------|---------------|{%- for rule in state_attr('sensor.hgw5_ports_forwarding', 'Ports') or [] %}\n| {{ rule['id'] }} | {{ rule['WAN Ip'] }} | {{ rule['WAN Port'] }} | {{ rule['Port'] }} |{%- endfor %}"
 
       - type: markdown
         title: Static DHCP Leases
-        content: "| MAC | IP Address |\n|-----|-----------|{%- for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}\n| {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |{%- endfor %}"
+        content: "| Name | MAC | IP Address |\n|------|-----|-----------|{%- for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}\n| {{ lease['Name'] | default('', true) }} | {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |{%- endfor %}"
 
   # --------------------------------------------------------------------------
   # Section 9: Phone & Calls
@@ -412,4 +422,4 @@ sections:
 
       - type: markdown
         title: Devices on Network
-        content: "| Device | IP | Connection | Signal |\n|--------|----|------------|--------|{%- for state in states.device_tracker if state.attributes.get('source_type') == 'router' and state.state == 'home' %}\n| {{ state.name }} | {{ state.attributes.ip_address | default('-') }} | {{ state.attributes.connection | default('?') }} {{ state.attributes.band | default('') }} | {{ state.attributes.signal_quality | default('-') }} |{%- endfor %}"
+        content: "| Device | IP | Connection | Signal |\n|--------|----|------------|--------|{%- for state in states.device_tracker if state.attributes.get('source_type') == 'router' and state.state == 'home' %}\n| {{ state.name }} | {{ state.attributes.ip_address | default('-', true) }} | {{ state.attributes.connection | default('?', true) }} {{ state.attributes.band | default('', true) }} | {{ state.attributes.signal_quality | default('-', true) }} |{%- endfor %}"
