@@ -1,6 +1,33 @@
 """Helpers functions."""
 
+import gzip
+import json
+import logging
+from pathlib import Path
 from typing import Any
+
+_LOGGER = logging.getLogger(__name__)
+_OUI_DB: dict[str, str] | None = None
+
+
+def lookup_mac_vendor(mac: str | None) -> str:
+    """Look up the manufacturer for a MAC address using the OUI database."""
+    global _OUI_DB
+    if not mac:
+        return ""
+    if _OUI_DB is None:
+        oui_path = Path(__file__).parent / "oui.json.gz"
+        if oui_path.exists():
+            try:
+                with gzip.open(oui_path, "rt") as f:
+                    _OUI_DB = json.load(f)
+            except Exception:
+                _LOGGER.debug("Failed to load OUI database")
+                _OUI_DB = {}
+        else:
+            _OUI_DB = {}
+    prefix = mac.upper().replace("-", ":")[0:8]
+    return _OUI_DB.get(prefix, "")
 
 
 def find_item(data: dict[str, Any], key_chain: str, default: Any = None) -> Any:

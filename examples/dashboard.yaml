@@ -1,22 +1,5 @@
 ##############################################################################
 # SoftAtHome Gateway - Home Assistant Dashboard
-#
-# Entity IDs use your Livebox's ProductClass as prefix (e.g. "hgw5",
-# "livebox_7", "livebox_fibre"). To find yours:
-#   Developer Tools > States > filter "livebox" or your product name
-#
-# Some sensors are DISABLED by default and must be enabled first:
-#   Settings > Devices > Livebox > Entities > (enable the greyed-out ones)
-#   - Uptime, WiFi Rx/Tx, DHCP Leases, Guest DHCP Leases, Ports Forwarding
-#
-# Per-band WiFi switches (2.4/5/6 GHz) only appear if your Livebox
-# reports WLAN VAP data. If missing, use the main WiFi switch instead.
-#
-# This file is a complete dashboard view. Paste it into a manual dashboard
-# via Settings > Dashboards > Add Dashboard > (three dots) > Edit in YAML.
-#
-# For individual card snippets and HACS examples, see cards.yaml
-# For automation examples, see automations.yaml
 ##############################################################################
 
 title: Livebox
@@ -25,10 +8,10 @@ type: sections
 sections:
 
   # --------------------------------------------------------------------------
-  # Section 1: Network Status Overview
+  # Section 1: Status & Controls
   # --------------------------------------------------------------------------
   - type: grid
-    title: Network Status
+    title: Status & Controls
     cards:
       - type: entities
         title: WAN Connection
@@ -53,10 +36,6 @@ sections:
             name: Gateway
           - type: attribute
             entity: binary_sensor.hgw5_wan_status
-            attribute: wan_ipv6address
-            name: WAN IPv6
-          - type: attribute
-            entity: binary_sensor.hgw5_wan_status
             attribute: wired clients
             name: Wired Clients
           - type: attribute
@@ -73,6 +52,8 @@ sections:
         entities:
           - entity: sensor.hgw5_reboots
             name: Total Reboots
+          - entity: sensor.hgw5_uptime
+            name: Uptime
           - entity: binary_sensor.hgw5_remote_access
             name: Remote Access
           - entity: binary_sensor.hgw5_dynamic_dns_no_ip
@@ -88,10 +69,10 @@ sections:
             text: Are you sure you want to restart the gateway?
 
   # --------------------------------------------------------------------------
-  # Section 2: WiFi Controls
+  # Section 2: WiFi
   # --------------------------------------------------------------------------
   - type: grid
-    title: WiFi Controls
+    title: WiFi
     cards:
       - type: tile
         entity: switch.hgw5_wifi
@@ -118,19 +99,17 @@ sections:
         name: WPS
         color: amber
 
-  # --------------------------------------------------------------------------
-  # Section 3: WiFi Radio Details
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: WiFi Radios
-    cards:
+      - type: entity
+        entity: sensor.hgw5_guest_wifi_bandwidth_limit
+        name: Guest Bandwidth Limit
+
       - type: entities
         title: "2.4 GHz Radio"
         entities:
           - entity: sensor.hgw5_wifi_2_4ghz_channel
             name: Channel
           - entity: sensor.hgw5_wifi_2_4ghz_clients
-            name: Connected Clients
+            name: Clients
           - type: attribute
             entity: sensor.hgw5_wifi_2_4ghz_channel
             attribute: standard
@@ -140,14 +119,6 @@ sections:
             attribute: max_bitrate_mbps
             name: Max Bitrate
             suffix: " Mbps"
-          - type: attribute
-            entity: sensor.hgw5_wifi_2_4ghz_channel
-            attribute: bandwidth
-            name: Channel Bandwidth
-          - type: attribute
-            entity: sensor.hgw5_wifi_2_4ghz_channel
-            attribute: auto_channel
-            name: Auto Channel
 
       - type: entities
         title: "5 GHz Radio"
@@ -155,7 +126,7 @@ sections:
           - entity: sensor.hgw5_wifi_5ghz_channel
             name: Channel
           - entity: sensor.hgw5_wifi_5ghz_clients
-            name: Connected Clients
+            name: Clients
           - type: attribute
             entity: sensor.hgw5_wifi_5ghz_channel
             attribute: standard
@@ -165,18 +136,15 @@ sections:
             attribute: max_bitrate_mbps
             name: Max Bitrate
             suffix: " Mbps"
-          - type: attribute
-            entity: sensor.hgw5_wifi_5ghz_channel
-            attribute: bandwidth
-            name: Channel Bandwidth
 
   # --------------------------------------------------------------------------
-  # Section 4: Ethernet Ports
+  # Section 3: Network
   # --------------------------------------------------------------------------
   - type: grid
-    title: Ethernet Ports
+    title: Network
     cards:
       - type: entities
+        title: Ethernet Ports
         entities:
           - entity: sensor.hgw5_eth1_link_speed
             name: ETH1
@@ -187,21 +155,31 @@ sections:
           - entity: sensor.hgw5_eth4_link_speed
             name: ETH4
 
-  # --------------------------------------------------------------------------
-  # Section 5: Guest WiFi Details
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Guest WiFi
-    cards:
-      - type: entity
-        entity: sensor.hgw5_guest_wifi_bandwidth_limit
-        name: Bandwidth Limit
+      - type: entities
+        title: Counters
+        entities:
+          - entity: sensor.hgw5_callers
+            name: Total Calls
+          - entity: sensor.hgw5_static_dhcp_leases
+            name: Static DHCP Leases
+          - entity: sensor.hgw5_ports_forwarding
+            name: Port Forwarding Rules
+          - entity: sensor.hgw5_dhcp_leases
+            name: DHCP Leases
+
+      - type: markdown
+        title: Static DHCP Leases
+        content: "| Name | MAC | IP |\n|------|-----|-----------|{%- for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}\n| {{ lease['Name'] | default('', true) }} | {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |{%- endfor %}"
+
+      - type: markdown
+        title: Port Forwarding
+        content: "| Rule | Destination | WAN Port | Port |\n|------|------------|----------|------|{%- for rule in state_attr('sensor.hgw5_ports_forwarding', 'Ports') or [] %}\n| {{ rule['id'] }} | {{ rule['WAN Ip'] }} | {{ rule['WAN Port'] }} | {{ rule['Port'] }} |{%- endfor %}"
 
   # --------------------------------------------------------------------------
-  # Section 6: Action Buttons
+  # Section 4: Actions
   # --------------------------------------------------------------------------
   - type: grid
-    title: WiFi Actions
+    title: Actions
     columns: 3
     cards:
       - type: button
@@ -260,7 +238,7 @@ sections:
               - switch.hgw5_wifi
               - switch.hgw5_guest_wifi
           confirmation:
-            text: "Disable ALL WiFi networks?"
+            text: "Disable ALL WiFi?"
 
       - type: button
         name: All WiFi On
@@ -274,13 +252,6 @@ sections:
               - switch.hgw5_wifi
               - switch.hgw5_guest_wifi
 
-  # --------------------------------------------------------------------------
-  # Section 7: Network Management
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Network Management
-    columns: 3
-    cards:
       - type: button
         name: Add Static DHCP
         icon: mdi:ip-network
@@ -354,35 +325,7 @@ sections:
             text: "Clear all missed calls?"
 
   # --------------------------------------------------------------------------
-  # Section 8: DHCP & Port Forwarding
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Network Info
-    cards:
-      - type: entities
-        title: Counters
-        entities:
-          - entity: sensor.hgw5_callers
-            name: Total Calls
-          - entity: sensor.hgw5_static_dhcp_leases
-            name: Static DHCP Leases
-          - entity: sensor.hgw5_ports_forwarding
-            name: Port Forwarding Rules
-          - entity: sensor.hgw5_dhcp_leases
-            name: DHCP Leases
-          - entity: sensor.hgw5_uptime
-            name: Uptime
-
-      - type: markdown
-        title: Port Forwarding
-        content: "| Rule | Destination | WAN Port | Internal Port |\n|------|------------|----------|---------------|{%- for rule in state_attr('sensor.hgw5_ports_forwarding', 'Ports') or [] %}\n| {{ rule['id'] }} | {{ rule['WAN Ip'] }} | {{ rule['WAN Port'] }} | {{ rule['Port'] }} |{%- endfor %}"
-
-      - type: markdown
-        title: Static DHCP Leases
-        content: "| Name | MAC | IP Address |\n|------|-----|-----------|{%- for lease in state_attr('sensor.hgw5_static_dhcp_leases', 'Leases') or [] %}\n| {{ lease['Name'] | default('', true) }} | {{ lease['MAC Address'] }} | {{ lease['IP Address'] }} |{%- endfor %}"
-
-  # --------------------------------------------------------------------------
-  # Section 9: Phone & Calls
+  # Section 5: Phone
   # --------------------------------------------------------------------------
   - type: grid
     title: Phone
@@ -404,22 +347,3 @@ sections:
         entities:
           - calendar.hgw5_call_log
         initial_view: dayGridMonth
-
-  # --------------------------------------------------------------------------
-  # Section 10: Connected Devices
-  # --------------------------------------------------------------------------
-  - type: grid
-    title: Connected Devices
-    cards:
-      - type: conditional
-        conditions:
-          - entity: binary_sensor.hgw5_call_missed
-            state: "on"
-        card:
-          type: markdown
-          title: Missed Calls
-          content: "{%- for call in state_attr('binary_sensor.hgw5_call_missed', 'missed_calls') or [] %}\n- **{{ call.phone_number }}** at {{ call.date }}\n{%- endfor %}"
-
-      - type: markdown
-        title: Devices on Network
-        content: "| Device | IP | Connection | Signal |\n|--------|----|------------|--------|{%- for state in states.device_tracker if state.attributes.get('source_type') == 'router' and state.state == 'home' %}\n| {{ state.name }} | {{ state.attributes.ip_address | default('-', true) }} | {{ state.attributes.connection | default('?', true) }} {{ state.attributes.band | default('', true) }} | {{ state.attributes.signal_quality | default('-', true) }} |{%- endfor %}"

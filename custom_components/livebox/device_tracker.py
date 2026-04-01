@@ -18,6 +18,7 @@ from . import LiveboxConfigEntry
 from .const import CONF_TRACKING_TIMEOUT, DEFAULT_TRACKING_TIMEOUT, DOMAIN
 from .coordinator import LiveboxDataUpdateCoordinator
 from .entity import LiveboxEntity
+from .helpers import lookup_mac_vendor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,11 +97,12 @@ class LiveboxDeviceScannerEntity(LiveboxEntity, ScannerEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the device state attributes."""
+        mac = self._device.get("Key")
         attrs = {
             "interface_name": self._device.get("InterfaceName"),
             "type": self._device.get("DeviceType"),
             "vendor": self._device.get("VendorClassID"),
-            "manufacturer": self._device.get("Manufacturer"),
+            "manufacturer": self._device.get("Manufacturer") or lookup_mac_vendor(mac),
             "first_seen": self._device.get("FirstSeen"),
             "last_connection": self._device.get("LastConnection"),
             "last_changed": self._device.get("LastChanged"),
