@@ -343,7 +343,3 @@ sections:
         entity: button.hgw5_clear_calls
         name: Clear Calls
 
-      - type: calendar
-        entities:
-          - calendar.hgw5_call_log
-        initial_view: dayGridMonth
