@@ -83,7 +83,6 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
                     if (
                         ("edev" in device["Tags"] or "hnid" in device["Tags"])
                         and "wifi" in device["Tags"]
-                        and device["PhysAddress"] is not None
                     ):
                         filtered_devices["status"]["wifi"].append(device)
                 return filtered_devices
@@ -103,16 +102,16 @@ def mock_router(request) -> Generator[MagicMock | AsyncMock]:
                 return _filtered_interfaces()
             if args[0] == {
                 "expression": {
-                    "wifi": 'wifi && (edev || hnid) and .PhysAddress!=""',
-                    "eth": 'eth && (edev || hnid) and .PhysAddress!=""',
+                    "wifi": "wifi && (edev || hnid)",
+                    "eth": "eth && (edev || hnid)",
                 }
             }:
                 return _filtered_devices()
 
             if args[0] == {
                 "expression": {
-                    "wifi": '.Active==true && wifi && (edev || hnid) and .PhysAddress!=""',
-                    "eth": '.Active==true && eth && (edev || hnid) and .PhysAddress!=""',
+                    "wifi": ".Active==true && wifi && (edev || hnid)",
+                    "eth": ".Active==true && eth && (edev || hnid)",
                 }
             }:
                 return _filtered_devices()

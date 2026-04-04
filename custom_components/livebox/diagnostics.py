@@ -112,11 +112,10 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data
 
-    # Only dump devices with a MAC address
     params = {
         "expression": {
-            "wifi": 'wifi && (edev || hnid) and .PhysAddress!=""',
-            "eth": 'eth && (edev || hnid) and .PhysAddress!=""',
+            "wifi": "wifi && (edev || hnid)",
+            "eth": "eth && (edev || hnid)",
         }
     }
 
@@ -210,8 +209,8 @@ async def async_get_config_entry_diagnostics(
             [
                 {
                     "expression": {
-                        "wifi": 'wifi && (edev || hnid) and .PhysAddress!=""',
-                        "eth": 'eth && (edev || hnid) and .PhysAddress!=""',
+                        "wifi": "wifi && (edev || hnid)",
+                        "eth": "eth && (edev || hnid)",
                     }
                 }
             ],

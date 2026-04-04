@@ -164,6 +164,20 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         """Get router infos."""
         return (await self.api.deviceinfo.async_get_deviceinfo()).get("status", {})
 
+    @staticmethod
+    def _device_key(device: dict[str, Any]) -> str:
+        """Return a usable key for a device, falling back to ClientID."""
+        key = device.get("Key", "")
+        if key:
+            return key
+        client_id = device.get("ClientID", "")
+        if client_id.startswith("01:") and len(client_id) == 20:
+            mac = client_id[3:].upper()
+            device.setdefault("Key", mac)
+            device.setdefault("PhysAddress", mac)
+            return mac
+        return ""
+
     async def async_get_devices(
         self, lan_tracking=False, wifi_tracking=True
     ) -> tuple[dict[str, Any], dict[str, int]]:
@@ -176,15 +190,15 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         if mode == "All":
             parameters = {
                 "expression": {
-                    "wifi": 'wifi && (edev || hnid) and .PhysAddress!=""',
-                    "eth": 'eth && (edev || hnid) and .PhysAddress!=""',
+                    "wifi": "wifi && (edev || hnid)",
+                    "eth": "eth && (edev || hnid)",
                 }
             }
         else:
             parameters = {
                 "expression": {
-                    "wifi": '.Active==true && wifi && (edev || hnid) and .PhysAddress!=""',
-                    "eth": '.Active==true && eth && (edev || hnid) and .PhysAddress!=""',
+                    "wifi": ".Active==true && wifi && (edev || hnid)",
+                    "eth": ".Active==true && eth && (edev || hnid)",
                 }
             }
         devices = (
@@ -194,14 +208,16 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
         if wifi_tracking:
             device_counters["wireless"] = len(devices.get("wifi", {}))
             for device in devices.get("wifi", {}):
-                if device.get("Key"):
-                    devices_tracker.setdefault(device.get("Key"), {}).update(device)
+                key = self._device_key(device)
+                if key:
+                    devices_tracker.setdefault(key, {}).update(device)
 
         if lan_tracking:
             device_counters["wired"] = len(devices.get("eth", {}))
             for device in devices.get("eth", {}):
-                if device.get("Key"):
-                    devices_tracker.setdefault(device.get("Key"), {}).update(device)
+                key = self._device_key(device)
+                if key:
+                    devices_tracker.setdefault(key, {}).update(device)
 
         return devices_tracker, device_counters
 
