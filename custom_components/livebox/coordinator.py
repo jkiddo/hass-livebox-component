@@ -119,6 +119,10 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 lan_tracking, wifi_tracking
             )
             callers, cmissed = await self.async_get_callers()
+            dhcp_leases = await self.async_get_dhcp_leases()
+            guest_dhcp_leases = await self.async_get_dhcp_leases("guest")
+
+            self._enrich_devices_from_leases(devices, dhcp_leases)
 
             await self.async_detect_new_dvices(devices)
 
@@ -152,8 +156,8 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
                 "phonebook_count": await self.async_get_phonebook_count(),
                 "lan": await self.async_get_lan(devices),
                 "upnp": await self.async_get_port_forwarding(),
-                "dhcp_leases": await self.async_get_dhcp_leases(),
-                "guest_dhcp_leases": await self.async_get_dhcp_leases("guest"),
+                "dhcp_leases": dhcp_leases,
+                "guest_dhcp_leases": guest_dhcp_leases,
                 "stats": await self.async_get_results(),
             }
         except AiosysbusException as error:
@@ -177,6 +181,24 @@ class LiveboxDataUpdateCoordinator(DataUpdateCoordinator):
             device.setdefault("PhysAddress", mac)
             return mac
         return ""
+
+    @staticmethod
+    def _enrich_devices_from_leases(
+        devices: dict[str, Any], leases: list[dict[str, Any]]
+    ) -> None:
+        """Fill in missing or link-local-only IPAddress on devices from DHCP lease data."""
+        mac_to_ip: dict[str, str] = {}
+        for lease in leases:
+            mac = (lease.get("Mac Address") or "").upper()
+            ip = lease.get("IP Address") or ""
+            if mac and ip:
+                mac_to_ip[mac] = ip
+        for mac, device in devices.items():
+            current_ip = device.get("IPAddress") or ""
+            if mac.upper() in mac_to_ip and (
+                not current_ip or current_ip.startswith("fe80:")
+            ):
+                device["IPAddress"] = mac_to_ip[mac.upper()]
 
     async def async_get_devices(
         self, lan_tracking=False, wifi_tracking=True
