@@ -1,0 +1,39 @@
+---
+name: Update OUI database
+
+on:
+  schedule:
+    # 04:17 UTC on the 1st of every month
+    - cron: "17 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Regenerate oui.json.gz
+        run: python scripts/update_oui.py
+
+      - name: Open a pull request if the table changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: refresh OUI MAC vendor database"
+          title: "chore: refresh OUI MAC vendor database"
+          body: |
+            Automated monthly refresh of `custom_components/livebox/oui.json.gz`
+            from the Wireshark `manuf` aggregation of the IEEE OUI registry.
+          branch: chore/update-oui
+          delete-branch: true
+          add-paths: custom_components/livebox/oui.json.gz

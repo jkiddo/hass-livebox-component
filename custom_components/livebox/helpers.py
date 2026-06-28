@@ -3,6 +3,7 @@
 import gzip
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -30,14 +31,24 @@ def load_oui_db_sync() -> None:
 
 
 def lookup_mac_vendor(mac: str | None) -> str:
-    """Look up the manufacturer for a MAC address using the OUI database."""
+    """Look up the manufacturer for a MAC address using the OUI database.
+
+    The database keys are colon-free, upper-case hex prefixes of varying
+    length, mirroring the IEEE allocation sizes: MA-S (/36, 9 nibbles),
+    MA-M (/28, 7 nibbles) and MA-L (/24, 6 nibbles). We try the longest
+    prefix first so a small block resolves to its real owner instead of the
+    surrounding /24 block.
+    """
     global _OUI_DB
     if not mac:
         return ""
     if _OUI_DB is None:
         _OUI_DB = _load_oui_db()
-    prefix = mac.upper().replace("-", ":")[0:8]
-    return _OUI_DB.get(prefix, "")
+    hex_only = re.sub(r"[^0-9A-Fa-f]", "", mac).upper()
+    for nibbles in (9, 7, 6):
+        if len(hex_only) >= nibbles and (vendor := _OUI_DB.get(hex_only[:nibbles])):
+            return vendor
+    return ""
 
 
 def find_item(data: dict[str, Any], key_chain: str, default: Any = None) -> Any:
